@@ -20,6 +20,7 @@ export default function RootLayout() {
           <Stack.Screen name="child-login" />
           <Stack.Screen name="(parent)" />
           <Stack.Screen name="(child)" />
+          <Stack.Screen name="(independent)" />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />

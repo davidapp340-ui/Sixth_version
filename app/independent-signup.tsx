@@ -224,7 +224,7 @@ export default function IndependentSignupScreen() {
       if (authError) {
         setError(authError.message || t('independent_signup.errors.registration_failed'));
       } else {
-        router.replace('/(child)/home');
+        router.replace('/(independent)/home');
       }
     } catch (err) {
       setError(t('independent_signup.errors.registration_failed'));

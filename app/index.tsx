@@ -25,7 +25,7 @@ export default function SplashScreen() {
   useEffect(() => {
     if (!loading && isSplashReady) {
       if (isIndependent && isChild) {
-        router.replace('/(child)/home');
+        router.replace('/(independent)/home');
       } else if (isParent) {
         router.replace('/(parent)/home');
       } else if (isChild) {

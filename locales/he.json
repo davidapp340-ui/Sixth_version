@@ -354,5 +354,52 @@
       "error": "טעינת המסמך נכשלה",
       "close_button": "סגור"
     }
+  },
+  "independent": {
+    "tabs": {
+      "home": "בית",
+      "journey": "מסע",
+      "gallery": "גלריה",
+      "articles": "מאמרים",
+      "settings": "הגדרות"
+    },
+    "home": {
+      "greeting": "ברוך שובך, {{name}}",
+      "progress_title": "ההתקדמות שלך",
+      "day_of": "יום {{current}} מתוך {{total}}",
+      "cycle": "מחזור {{cycle}}",
+      "start_exercise": "התחל את האימון היומי",
+      "rest_day": "היום יום מנוחה",
+      "rest_day_description": "קח הפסקה ותן לעיניים להתאושש. מגיע לך!",
+      "stats": {
+        "points": "נקודות",
+        "streak": "רצף",
+        "days": "ימים"
+      },
+      "recent_activity": "פעילות אחרונה",
+      "no_activity": "השלם את התרגיל הראשון שלך כדי לראות פעילות כאן",
+      "session_error": "לא ניתן לטעון את הפרופיל שלך. אנא התחבר שנית."
+    },
+    "articles": {
+      "title": "מאמרים וטיפים",
+      "loading": "טוען מאמרים...",
+      "empty": "אין מאמרים זמינים עדיין",
+      "error": "נכשל בטעינת המאמרים. נסה שוב."
+    },
+    "settings": {
+      "title": "הגדרות",
+      "profile_section": "הפרופיל שלי",
+      "vision_info": "מידע על ראייה",
+      "vision_condition": "מצב",
+      "glasses": "מרכיב משקפיים",
+      "glasses_yes": "כן",
+      "glasses_no": "לא",
+      "prescription_left": "עין שמאל",
+      "prescription_right": "עין ימין",
+      "general_section": "כללי",
+      "support_section": "תמיכה ומידע",
+      "sign_out": "התנתק",
+      "version": "גרסה 1.0.0"
+    }
   }
 }

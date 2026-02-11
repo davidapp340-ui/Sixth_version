@@ -354,5 +354,52 @@
       "error": "Failed to load document",
       "close_button": "Close"
     }
+  },
+  "independent": {
+    "tabs": {
+      "home": "Home",
+      "journey": "Journey",
+      "gallery": "Gallery",
+      "articles": "Articles",
+      "settings": "Settings"
+    },
+    "home": {
+      "greeting": "Welcome back, {{name}}",
+      "progress_title": "Your Progress",
+      "day_of": "Day {{current}} of {{total}}",
+      "cycle": "Cycle {{cycle}}",
+      "start_exercise": "Start Today's Exercise",
+      "rest_day": "Today is a Rest Day",
+      "rest_day_description": "Take it easy and let your eyes recover. You've earned it!",
+      "stats": {
+        "points": "Points",
+        "streak": "Streak",
+        "days": "days"
+      },
+      "recent_activity": "Recent Activity",
+      "no_activity": "Complete your first exercise to see activity here",
+      "session_error": "Unable to load your profile. Please sign in again."
+    },
+    "articles": {
+      "title": "Articles & Tips",
+      "loading": "Loading articles...",
+      "empty": "No articles available yet",
+      "error": "Failed to load articles. Please try again."
+    },
+    "settings": {
+      "title": "Settings",
+      "profile_section": "My Profile",
+      "vision_info": "Vision Information",
+      "vision_condition": "Condition",
+      "glasses": "Wears Glasses",
+      "glasses_yes": "Yes",
+      "glasses_no": "No",
+      "prescription_left": "Left Eye",
+      "prescription_right": "Right Eye",
+      "general_section": "General",
+      "support_section": "Support & Info",
+      "sign_out": "Sign Out",
+      "version": "Version 1.0.0"
+    }
   }
 }
