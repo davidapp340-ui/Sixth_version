@@ -7,14 +7,14 @@ import { useChildSession } from '@/contexts/ChildSessionContext';
 
 export default function ChildLayout() {
   const { t } = useTranslation();
-  const { child, loading } = useChildSession();
+  const { child, loading, isIndependent } = useChildSession();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading && !child) {
-      router.replace('/child-login');
+      router.replace(isIndependent ? '/role-selection' : '/child-login');
     }
-  }, [loading, child, router]);
+  }, [loading, child, isIndependent, router]);
 
   if (loading) {
     return (

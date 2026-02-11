@@ -513,6 +513,30 @@ export interface Database {
           points_earned?: number
         }
       }
+      register_independent_user: {
+        Args: {
+          p_name: string
+          p_birth_date: string
+          p_gender?: string | null
+          p_vision_condition?: string
+          p_wears_glasses?: boolean
+          p_prescription_left?: number | null
+          p_prescription_right?: number | null
+        }
+        Returns: {
+          success: boolean
+          child: Database['public']['Tables']['children']['Row'] | null
+          error: string | null
+        }
+      }
+      get_independent_child: {
+        Args: Record<string, never>
+        Returns: {
+          success: boolean
+          child: Database['public']['Tables']['children']['Row'] | null
+          error: string | null
+        }
+      }
     }
     Enums: {}
   }

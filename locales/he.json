@@ -17,9 +17,11 @@
     "title": "Zoomi",
     "subtitle": "בחר תפקיד",
     "parent_button": "הורה",
-    "parent_subtitle": "Parent",
+    "parent_subtitle": "ניהול המשפחה",
     "child_button": "ילד",
-    "child_subtitle": "Child"
+    "child_subtitle": "התחל אימון",
+    "independent_button": "משתמש עצמאי",
+    "independent_subtitle": "להתאמן לבד"
   },
   "auth": {
     "parent_login_title": "Zoomi",
@@ -286,6 +288,71 @@
       "loading": "טוען מאמר...",
       "error": "נכשל בטעינת תוכן המאמר",
       "back": "חזרה למאמרים"
+    }
+  },
+  "independent_signup": {
+    "title": "יצירת חשבון",
+    "step_indicator": "שלב {{current}} מתוך {{total}}",
+    "step1": {
+      "title": "פרטי התחברות",
+      "email_label": "אימייל",
+      "email_placeholder": "הזן את האימייל שלך",
+      "password_label": "סיסמה",
+      "password_placeholder": "צור סיסמה",
+      "confirm_password_label": "אימות סיסמה",
+      "confirm_password_placeholder": "אמת את הסיסמה",
+      "next_button": "המשך"
+    },
+    "step2": {
+      "title": "פרטים אישיים וראייה",
+      "name_section_title": "מידע אישי",
+      "first_name_label": "שם פרטי",
+      "first_name_placeholder": "הזן שם פרטי",
+      "last_name_label": "שם משפחה",
+      "last_name_placeholder": "הזן שם משפחה",
+      "birth_date_label": "תאריך לידה",
+      "birth_date_placeholder": "בחר תאריך",
+      "gender_label": "מגדר (אופציונלי)",
+      "vision_section_title": "מידע על ראייה",
+      "vision_condition_label": "מצב ראייה",
+      "wears_glasses_label": "מרכיב/ה משקפיים?",
+      "prescription_section_title": "מרשם עדכני",
+      "prescription_left_label": "עין שמאל",
+      "prescription_left_placeholder": "לדוגמה: 2.50-",
+      "prescription_right_label": "עין ימין",
+      "prescription_right_placeholder": "לדוגמה: 1.75-",
+      "next_button": "המשך",
+      "back_button": "חזור"
+    },
+    "step3": {
+      "title": "תנאים ופרטיות",
+      "consent_text": "אני מסכים/ה ל",
+      "terms_link": "תנאי השימוש",
+      "and": "ו",
+      "privacy_link": "מדיניות הפרטיות",
+      "create_button": "צור חשבון",
+      "back_button": "חזור"
+    },
+    "validation": {
+      "email_required": "אימייל הוא שדה חובה",
+      "email_invalid": "נא להזין אימייל תקין",
+      "password_required": "סיסמה היא שדה חובה",
+      "password_too_short": "הסיסמה חייבת להכיל לפחות 6 תווים",
+      "passwords_not_match": "הסיסמאות אינן תואמות",
+      "first_name_required": "שם פרטי הוא שדה חובה",
+      "birth_date_required": "תאריך לידה הוא שדה חובה",
+      "birth_date_future": "התאריך לא יכול להיות בעתיד",
+      "consent_required": "יש להסכים לתנאים כדי להמשיך",
+      "prescription_invalid": "נא להזין מספר מרשם תקין"
+    },
+    "errors": {
+      "registration_failed": "ההרשמה נכשלה. נסה שנית."
+    },
+    "policy_modal": {
+      "view_policy": "צפה במדיניות",
+      "loading": "טוען...",
+      "error": "טעינת המסמך נכשלה",
+      "close_button": "סגור"
     }
   }
 }

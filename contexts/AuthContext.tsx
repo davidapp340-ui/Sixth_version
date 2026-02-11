@@ -5,12 +5,26 @@ import { Database } from '@/lib/database.types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
+interface IndependentSignUpData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  birthDate: string;
+  gender: string;
+  visionCondition: string;
+  wearsGlasses: boolean;
+  prescriptionLeft: number | null;
+  prescriptionRight: number | null;
+}
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   profile: Profile | null;
   loading: boolean;
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: any }>;
+  signUpIndependent: (data: IndependentSignUpData) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -85,6 +99,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signUpIndependent = async (data: IndependentSignUpData) => {
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            first_name: data.firstName,
+            last_name: data.lastName,
+            role: 'independent',
+            birth_date: data.birthDate,
+            gender: data.gender || null,
+            vision_condition: data.visionCondition,
+            wears_glasses: data.wearsGlasses,
+            prescription_left: data.prescriptionLeft,
+            prescription_right: data.prescriptionRight,
+          },
+        },
+      });
+      return { error };
+    } catch (error) {
+      return { error };
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -108,6 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profile,
     loading,
     signUp,
+    signUpIndependent,
     signIn,
     signOut,
   };

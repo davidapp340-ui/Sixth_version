@@ -2,14 +2,17 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Child = Database['public']['Tables']['children']['Row'];
 
 interface ChildSessionContextType {
   child: Child | null;
   loading: boolean;
+  isIndependent: boolean;
   linkChildWithCode: (code: string, deviceId: string) => Promise<{ child?: Child; error?: any }>;
   clearChildSession: () => Promise<void>;
+  refreshChild: () => Promise<void>;
 }
 
 const ChildSessionContext = createContext<ChildSessionContextType | undefined>(undefined);
@@ -17,12 +20,37 @@ const ChildSessionContext = createContext<ChildSessionContextType | undefined>(u
 const DEVICE_ID_KEY = '@zoomi_device_id';
 
 export function ChildSessionProvider({ children }: { children: React.ReactNode }) {
+  const { profile, loading: authLoading } = useAuth();
   const [child, setChild] = useState<Child | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const isIndependent = profile?.role === 'independent';
+
   useEffect(() => {
-    checkChildSession();
-  }, []);
+    if (authLoading) return;
+
+    if (isIndependent) {
+      loadIndependentChild();
+    } else {
+      checkChildSession();
+    }
+  }, [authLoading, isIndependent, profile?.id]);
+
+  const loadIndependentChild = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_independent_child');
+
+      if (error) throw error;
+
+      if (data && data.success && data.child) {
+        setChild(data.child);
+      }
+    } catch (error) {
+      console.error('Error loading independent child:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const checkChildSession = async () => {
     try {
@@ -76,11 +104,21 @@ export function ChildSessionProvider({ children }: { children: React.ReactNode }
     setChild(null);
   };
 
+  const refreshChild = async () => {
+    if (isIndependent) {
+      await loadIndependentChild();
+    } else {
+      await checkChildSession();
+    }
+  };
+
   const value: ChildSessionContextType = {
     child,
     loading,
+    isIndependent,
     linkChildWithCode,
     clearChildSession,
+    refreshChild,
   };
 
   return (

@@ -7,14 +7,13 @@ import { useChildSession } from '@/contexts/ChildSessionContext';
 export default function SplashScreen() {
   const router = useRouter();
   const { loading: authLoading, profile } = useAuth();
-  const { loading: childLoading, child } = useChildSession();
+  const { loading: childLoading, child, isIndependent } = useChildSession();
   const [isSplashReady, setIsSplashReady] = useState(false);
 
   const loading = authLoading || childLoading;
-  const isParent = !!profile;
+  const isParent = !!profile && profile.role === 'parent';
   const isChild = !!child;
 
-  // Start minimum splash timer on mount (runs in parallel with data loading)
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsSplashReady(true);
@@ -23,10 +22,11 @@ export default function SplashScreen() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Navigate when BOTH conditions are met: data loaded AND minimum time elapsed
   useEffect(() => {
     if (!loading && isSplashReady) {
-      if (isParent) {
+      if (isIndependent && isChild) {
+        router.replace('/(child)/home');
+      } else if (isParent) {
         router.replace('/(parent)/home');
       } else if (isChild) {
         router.replace('/(child)/home');
@@ -34,7 +34,7 @@ export default function SplashScreen() {
         router.replace('/role-selection');
       }
     }
-  }, [loading, isSplashReady, isParent, isChild, router]);
+  }, [loading, isSplashReady, isParent, isChild, isIndependent, router]);
 
   return (
     <View style={styles.container}>

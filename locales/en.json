@@ -17,9 +17,11 @@
     "title": "Zoomi",
     "subtitle": "Select Role",
     "parent_button": "Parent",
-    "parent_subtitle": "Parent",
+    "parent_subtitle": "Manage your family",
     "child_button": "Child",
-    "child_subtitle": "Child"
+    "child_subtitle": "Start training",
+    "independent_button": "Independent User",
+    "independent_subtitle": "Train on my own"
   },
   "auth": {
     "parent_login_title": "Zoomi",
@@ -286,6 +288,71 @@
       "loading": "Loading article...",
       "error": "Failed to load article content",
       "back": "Back to Articles"
+    }
+  },
+  "independent_signup": {
+    "title": "Create Account",
+    "step_indicator": "Step {{current}} of {{total}}",
+    "step1": {
+      "title": "Your Credentials",
+      "email_label": "Email",
+      "email_placeholder": "Enter your email",
+      "password_label": "Password",
+      "password_placeholder": "Create a password",
+      "confirm_password_label": "Confirm Password",
+      "confirm_password_placeholder": "Confirm your password",
+      "next_button": "Next"
+    },
+    "step2": {
+      "title": "Personal & Vision Details",
+      "name_section_title": "Personal Information",
+      "first_name_label": "First Name",
+      "first_name_placeholder": "Enter first name",
+      "last_name_label": "Last Name",
+      "last_name_placeholder": "Enter last name",
+      "birth_date_label": "Date of Birth",
+      "birth_date_placeholder": "Select date",
+      "gender_label": "Gender (Optional)",
+      "vision_section_title": "Vision Information",
+      "vision_condition_label": "Vision Status",
+      "wears_glasses_label": "Do you wear glasses?",
+      "prescription_section_title": "Current Prescription",
+      "prescription_left_label": "Left Eye",
+      "prescription_left_placeholder": "e.g., -2.50",
+      "prescription_right_label": "Right Eye",
+      "prescription_right_placeholder": "e.g., -1.75",
+      "next_button": "Next",
+      "back_button": "Back"
+    },
+    "step3": {
+      "title": "Terms & Privacy",
+      "consent_text": "I agree to the",
+      "terms_link": "Terms of Use",
+      "and": "and",
+      "privacy_link": "Privacy Policy",
+      "create_button": "Create Account",
+      "back_button": "Back"
+    },
+    "validation": {
+      "email_required": "Email is required",
+      "email_invalid": "Please enter a valid email",
+      "password_required": "Password is required",
+      "password_too_short": "Password must be at least 6 characters",
+      "passwords_not_match": "Passwords do not match",
+      "first_name_required": "First name is required",
+      "birth_date_required": "Date of birth is required",
+      "birth_date_future": "Date cannot be in the future",
+      "consent_required": "You must agree to the terms to continue",
+      "prescription_invalid": "Please enter a valid prescription number"
+    },
+    "errors": {
+      "registration_failed": "Registration failed. Please try again."
+    },
+    "policy_modal": {
+      "view_policy": "View Policy",
+      "loading": "Loading...",
+      "error": "Failed to load document",
+      "close_button": "Close"
     }
   }
 }

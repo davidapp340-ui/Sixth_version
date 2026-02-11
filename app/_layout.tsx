@@ -16,6 +16,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="role-selection" />
           <Stack.Screen name="parent-auth" />
+          <Stack.Screen name="independent-signup" />
           <Stack.Screen name="child-login" />
           <Stack.Screen name="(parent)" />
           <Stack.Screen name="(child)" />
