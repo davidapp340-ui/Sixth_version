@@ -27,6 +27,7 @@ export function ChildSessionProvider({ children }: { children: React.ReactNode }
   const isIndependent = profile?.role === 'independent';
 
   useEffect(() => {
+    setLoading(true);
     if (authLoading) return;
 
     if (isIndependent) {

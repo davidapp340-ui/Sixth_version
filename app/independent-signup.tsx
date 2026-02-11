@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Calendar, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import { useChildSession } from '@/contexts/ChildSessionContext';
 import { fetchLegalDocument } from '@/lib/legal';
 
 interface Step1Data {
@@ -43,11 +44,19 @@ interface Step3Data {
 export default function IndependentSignupScreen() {
   const router = useRouter();
   const { signUpIndependent } = useAuth();
+  const { child, isIndependent } = useChildSession();
   const { t } = useTranslation();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [signupComplete, setSignupComplete] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (signupComplete && isIndependent && child) {
+      router.replace('/(independent)/home');
+    }
+  }, [signupComplete, isIndependent, child]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [policyModalVisible, setPolicyModalVisible] = useState(false);
   const [policyLoading, setPolicyLoading] = useState(false);
@@ -223,12 +232,12 @@ export default function IndependentSignupScreen() {
 
       if (authError) {
         setError(authError.message || t('independent_signup.errors.registration_failed'));
+        setLoading(false);
       } else {
-        router.replace('/(independent)/home');
+        setSignupComplete(true);
       }
     } catch (err) {
       setError(t('independent_signup.errors.registration_failed'));
-    } finally {
       setLoading(false);
     }
   };
