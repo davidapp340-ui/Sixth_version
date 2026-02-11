@@ -363,6 +363,15 @@ export default function IndependentSignupScreen() {
       >
         <Text style={styles.primaryButtonText}>{t('independent_signup.step1.next_button')}</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.toggleButton}
+        onPress={() => router.replace('/independent-login')}
+      >
+        <Text style={styles.toggleButtonText}>
+          {t('independent_signup.step1.toggle_to_login')}
+        </Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 
@@ -920,5 +929,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 26,
     color: '#374151',
+  },
+  toggleButton: {
+    marginTop: 24,
+    marginBottom: 32,
+    alignItems: 'center',
+  },
+  toggleButtonText: {
+    color: '#0369A1',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

@@ -290,6 +290,25 @@
       "back": "Back to Articles"
     }
   },
+  "independent_login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to your account",
+    "email_label": "Email",
+    "email_placeholder": "Enter your email",
+    "password_label": "Password",
+    "password_placeholder": "Enter your password",
+    "sign_in_button": "Sign In",
+    "toggle_to_signup": "Don't have an account? Sign up",
+    "validation": {
+      "email_required": "Email is required",
+      "email_invalid": "Please enter a valid email",
+      "password_required": "Password is required"
+    },
+    "errors": {
+      "login_failed": "Login failed. Please check your credentials.",
+      "unexpected_error": "An unexpected error occurred"
+    }
+  },
   "independent_signup": {
     "title": "Create Account",
     "step_indicator": "Step {{current}} of {{total}}",
@@ -301,7 +320,8 @@
       "password_placeholder": "Create a password",
       "confirm_password_label": "Confirm Password",
       "confirm_password_placeholder": "Confirm your password",
-      "next_button": "Next"
+      "next_button": "Next",
+      "toggle_to_login": "Already have an account? Log in"
     },
     "step2": {
       "title": "Personal & Vision Details",

@@ -25,7 +25,7 @@ export default function RoleSelectionScreen() {
 
           <TouchableOpacity
             style={[styles.button, styles.independentButton]}
-            onPress={() => router.push('/independent-signup')}
+            onPress={() => router.push('/independent-login')}
           >
             <UserCircle size={40} color="#FFFFFF" />
             <Text style={styles.buttonText}>{t('role_selection.independent_button')}</Text>

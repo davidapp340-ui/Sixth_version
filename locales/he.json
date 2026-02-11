@@ -290,6 +290,25 @@
       "back": "חזרה למאמרים"
     }
   },
+  "independent_login": {
+    "title": "ברוך שובך",
+    "subtitle": "התחבר לחשבון שלך",
+    "email_label": "אימייל",
+    "email_placeholder": "הזן את האימייל שלך",
+    "password_label": "סיסמה",
+    "password_placeholder": "הזן את הסיסמה שלך",
+    "sign_in_button": "התחבר",
+    "toggle_to_signup": "אין לך חשבון? הירשם",
+    "validation": {
+      "email_required": "אימייל הוא שדה חובה",
+      "email_invalid": "נא להזין אימייל תקין",
+      "password_required": "סיסמה היא שדה חובה"
+    },
+    "errors": {
+      "login_failed": "ההתחברות נכשלה. בדוק את הפרטים ונסה שנית.",
+      "unexpected_error": "אירעה שגיאה בלתי צפויה"
+    }
+  },
   "independent_signup": {
     "title": "יצירת חשבון",
     "step_indicator": "שלב {{current}} מתוך {{total}}",
@@ -301,7 +320,8 @@
       "password_placeholder": "צור סיסמה",
       "confirm_password_label": "אימות סיסמה",
       "confirm_password_placeholder": "אמת את הסיסמה",
-      "next_button": "המשך"
+      "next_button": "המשך",
+      "toggle_to_login": "כבר יש לך חשבון? התחבר"
     },
     "step2": {
       "title": "פרטים אישיים וראייה",
