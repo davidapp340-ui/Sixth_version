@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, useWindowDimensions } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -20,9 +20,7 @@ import React from 'react';
 type DailyPlan = Database['public']['Tables']['daily_plans']['Row'];
 type Child = Database['public']['Tables']['children']['Row'];
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
 const NODE_SIZE = 60;
-const PATH_WIDTH = SCREEN_WIDTH - 80;
 
 const THEME_BACKGROUNDS = {
   forest: ['#1E3A20', '#2D5016', '#4A7C59'],
@@ -35,10 +33,13 @@ export default function PathScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { child, loading: sessionLoading } = useChildSession();
+  const { width: screenWidth } = useWindowDimensions();
   const [dailyPlans, setDailyPlans] = useState<DailyPlan[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [claimingTreasure, setClaimingTreasure] = useState(false);
+
+  const PATH_WIDTH = screenWidth - 80;
 
   const fetchData = async () => {
     if (!child?.id || !child?.track_level) {
@@ -131,12 +132,12 @@ export default function PathScreen() {
     }
   };
 
-  const getNodePosition = (index: number) => {
+  const getNodePosition = (index: number, pathWidth: number) => {
     const row = Math.floor(index / 5);
     const col = index % 5;
     const isEvenRow = row % 2 === 0;
 
-    const x = isEvenRow ? col * (PATH_WIDTH / 4) : (4 - col) * (PATH_WIDTH / 4);
+    const x = isEvenRow ? col * (pathWidth / 4) : (4 - col) * (pathWidth / 4);
     const y = row * 100;
 
     return { x, y };
@@ -146,7 +147,7 @@ export default function PathScreen() {
     if (!child) return null;
 
     const plan = dailyPlans.find(p => p.day_number === day);
-    const position = getNodePosition(index);
+    const position = getNodePosition(index, PATH_WIDTH);
     const isRestDay = [7, 14, 21, 28].includes(day);
     const isPast = day < child.path_day;
     const isCurrent = day === child.path_day;
@@ -263,7 +264,7 @@ export default function PathScreen() {
         contentContainerStyle={styles.pathContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.pathWrapper}>
+        <View style={[styles.pathWrapper, { width: PATH_WIDTH }]}>
           {Array.from({ length: 30 }, (_, i) => i + 1).map((day, index) =>
             renderNode(day, index)
           )}
@@ -432,7 +433,6 @@ const styles = StyleSheet.create({
   pathWrapper: {
     position: 'relative',
     height: 620,
-    width: PATH_WIDTH,
     alignSelf: 'center',
   },
   nodeContainer: {
