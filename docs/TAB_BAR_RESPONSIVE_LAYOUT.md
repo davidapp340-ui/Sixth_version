@@ -3,6 +3,25 @@
 ## Overview
 Refactored all bottom tab bar layouts to ensure text labels are fully visible and responsive across all device sizes, with special attention to Hebrew text which can be wider than English.
 
+## Swipe Navigation (Material Top Tabs)
+
+The Child and Independent layouts now support swipe navigation between tabs using `@react-navigation/material-top-tabs` positioned at the bottom.
+
+### Features
+- **Swipe between tabs**: Users can swipe left/right to switch screens
+- **Bottom tab bar position**: Tab bar remains at the bottom like iOS-style navigation
+- **Indicator line**: A colored indicator line shows at the top of the active tab
+- **Smooth animations**: Native pager view for performant transitions
+- **Lazy loading**: Screens load only when navigated to
+
+### Dependencies Added
+- `@react-navigation/material-top-tabs`
+- `react-native-tab-view`
+- `react-native-pager-view`
+
+### Component Location
+`components/navigation/SwipableTabs.tsx` - Expo Router compatible wrapper
+
 ## Changes Made
 
 ### Files Modified
