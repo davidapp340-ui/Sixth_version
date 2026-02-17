@@ -421,5 +421,11 @@
       "sign_out": "Sign Out",
       "version": "Version 1.0.0"
     }
+  },
+  "completion_modal": {
+    "title": "Exercise Complete!",
+    "subtitle": "Great job! Keep it up!",
+    "points_label": "Coins",
+    "button": "Awesome!"
   }
 }

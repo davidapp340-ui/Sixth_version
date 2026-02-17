@@ -421,5 +421,11 @@
       "sign_out": "התנתק",
       "version": "גרסה 1.0.0"
     }
+  },
+  "completion_modal": {
+    "title": "!התרגיל הושלם",
+    "subtitle": "!כל הכבוד! המשיכו כך",
+    "points_label": "מטבעות",
+    "button": "!מעולה"
   }
 }

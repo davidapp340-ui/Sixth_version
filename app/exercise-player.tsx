@@ -1,16 +1,3 @@
-/**
- * Exercise Player Screen
- *
- * This component provides synchronized playback of exercise animations and audio.
- * Critical requirement: Absolute synchronization between audio and animation start,
- * even under slow network conditions.
- *
- * Synchronization strategy:
- * 1. Pre-load both audio and animation before enabling play
- * 2. Only enable play button when both are ready
- * 3. Start both at the exact same moment (atomic play)
- */
-
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
@@ -26,6 +13,9 @@ import { Audio } from 'expo-av';
 import { ArrowLeft, Play, RotateCcw } from 'lucide-react-native';
 import { getLibraryItemById, getLocalizedLibraryItem } from '@/lib/library';
 import { ExerciseAnimationRenderer } from '@/components/exercises/ExerciseRegistry';
+import CompletionModal from '@/components/exercises/CompletionModal';
+import { useChildSession } from '@/contexts/ChildSessionContext';
+import { supabase } from '@/lib/supabase';
 import type { LibraryItemWithExercise } from '@/lib/library';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -34,6 +24,7 @@ export default function ExercisePlayerScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const { i18n } = useTranslation();
+  const { child, refreshChild } = useChildSession();
 
   const [libraryItem, setLibraryItem] = useState<LibraryItemWithExercise | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,6 +34,10 @@ export default function ExercisePlayerScreen() {
   const [animationReady, setAnimationReady] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasCompleted, setHasCompleted] = useState(false);
+
+  const [showModal, setShowModal] = useState(false);
+  const [pointsEarned, setPointsEarned] = useState(0);
+  const [loggingCompletion, setLoggingCompletion] = useState(false);
 
   const soundRef = useRef<Audio.Sound | null>(null);
   const animationTriggerRef = useRef<boolean>(false);
@@ -147,10 +142,50 @@ export default function ExercisePlayerScreen() {
     }
   };
 
-  const handlePlaybackComplete = () => {
+  const handlePlaybackComplete = async () => {
     setIsPlaying(false);
     setHasCompleted(true);
     animationTriggerRef.current = false;
+
+    if (child && libraryItem) {
+      await logCompletion();
+    }
+  };
+
+  const logCompletion = async () => {
+    if (!child || !libraryItem || loggingCompletion) return;
+
+    try {
+      setLoggingCompletion(true);
+
+      const { data, error: rpcError } = await supabase.rpc('log_exercise_completion', {
+        p_child_id: child.id,
+        p_exercise_id: libraryItem.exercise.id,
+      });
+
+      if (rpcError) {
+        console.error('RPC error:', rpcError);
+        setPointsEarned(5);
+      } else if (data && data.success) {
+        setPointsEarned(data.points_earned);
+      } else {
+        setPointsEarned(5);
+      }
+
+      setShowModal(true);
+    } catch (err) {
+      console.error('Failed to log completion:', err);
+      setPointsEarned(5);
+      setShowModal(true);
+    } finally {
+      setLoggingCompletion(false);
+    }
+  };
+
+  const handleModalDismiss = () => {
+    setShowModal(false);
+    refreshChild();
+    router.back();
   };
 
   const handlePlay = async () => {
@@ -238,7 +273,7 @@ export default function ExercisePlayerScreen() {
           <ExerciseAnimationRenderer animationId={libraryItem.exercise.animation_id} />
         ) : (
           <View style={styles.placeholderAnimation}>
-            <Text style={styles.placeholderIcon}>🧘</Text>
+            <Text style={styles.placeholderIcon}>&#129496;</Text>
             <Text style={styles.placeholderText}>Ready to start</Text>
           </View>
         )}
@@ -256,7 +291,12 @@ export default function ExercisePlayerScreen() {
           </View>
         )}
 
-        {hasCompleted ? (
+        {loggingCompletion ? (
+          <View style={styles.bufferingContainer}>
+            <ActivityIndicator size="small" color="#10B981" />
+            <Text style={styles.bufferingText}>Saving progress...</Text>
+          </View>
+        ) : hasCompleted && !showModal ? (
           <TouchableOpacity
             style={[styles.playButton, styles.replayButton]}
             onPress={handleReplay}
@@ -264,7 +304,7 @@ export default function ExercisePlayerScreen() {
             <RotateCcw size={24} color="#FFFFFF" />
             <Text style={styles.playButtonText}>Play Again</Text>
           </TouchableOpacity>
-        ) : (
+        ) : !hasCompleted ? (
           <TouchableOpacity
             style={[
               styles.playButton,
@@ -278,23 +318,29 @@ export default function ExercisePlayerScreen() {
               {isPlaying ? 'Playing...' : 'Start Exercise'}
             </Text>
           </TouchableOpacity>
-        )}
+        ) : null}
 
         <View style={styles.metaInfo}>
           {libraryItem.enable_audio && (
             <View style={styles.metaItem}>
-              <Text style={styles.metaIcon}>🔊</Text>
+              <Text style={styles.metaIcon}>&#128266;</Text>
               <Text style={styles.metaText}>Audio Guided</Text>
             </View>
           )}
           {libraryItem.enable_animation && (
             <View style={styles.metaItem}>
-              <Text style={styles.metaIcon}>🎬</Text>
+              <Text style={styles.metaIcon}>&#127916;</Text>
               <Text style={styles.metaText}>Animated</Text>
             </View>
           )}
         </View>
       </View>
+
+      <CompletionModal
+        visible={showModal}
+        pointsEarned={pointsEarned}
+        onDismiss={handleModalDismiss}
+      />
     </View>
   );
 }
