@@ -40,7 +40,7 @@ export default function IndependentLayout() {
   const tabBarPaddingBottom = Platform.select({
     ios: Math.max(insets.bottom, 8),
     android: 12,
-    default: 8,
+    default: Math.max(insets.bottom, 8),
   });
 
   return (
@@ -134,6 +134,9 @@ export default function IndependentLayout() {
         name="article/[id]"
         options={{
           href: null,
+          tabBarItemStyle: { display: 'none' },
+          tabBarShowLabel: false,
+          swipeEnabled: false,
         }}
       />
     </SwipableTabs>
