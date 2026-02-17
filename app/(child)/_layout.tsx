@@ -1,14 +1,16 @@
 import { useEffect } from 'react';
 import { Tabs, useRouter } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Home, Dumbbell, Map, Settings } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useChildSession } from '@/contexts/ChildSessionContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ChildLayout() {
   const { t } = useTranslation();
   const { child, loading, isIndependent } = useChildSession();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (!loading && !child) {
@@ -38,13 +40,38 @@ export default function ChildLayout() {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
-          paddingBottom: 8,
           paddingTop: 8,
-          height: 60,
+          paddingBottom: Platform.select({
+            ios: Math.max(insets.bottom, 8),
+            android: 12,
+            default: 8,
+          }),
+          height: Platform.select({
+            ios: 75 + insets.bottom,
+            android: 70,
+            default: 70,
+          }),
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: '600',
+          marginTop: 2,
+          marginBottom: Platform.select({
+            ios: 0,
+            android: 4,
+            default: 2,
+          }),
+        },
+        tabBarItemStyle: {
+          paddingVertical: 6,
+          paddingHorizontal: 2,
+        },
+        tabBarIconStyle: {
+          marginTop: Platform.select({
+            ios: 2,
+            android: 0,
+            default: 0,
+          }),
         },
       }}
     >
