@@ -438,6 +438,29 @@
     "stat_practice_time": "Practice Time",
     "stat_last_activity": "Last Activity"
   },
+  "notifications": {
+    "section_title": "Notifications",
+    "enable_label": "Enable Notifications",
+    "enable_description": "Receive daily workout reminders",
+    "reminder_time_label": "Daily Reminder Time",
+    "reminder_time_description": "When should we remind you?",
+    "reminder_title": "Time to Train!",
+    "reminder_body": "Your daily eye workout is waiting. Let's go!",
+    "enabled_success": "Notifications enabled",
+    "disabled_success": "Notifications disabled",
+    "permission_denied": "Notification permission denied. Enable it in your device settings.",
+    "not_available": "Notifications are not available on this device",
+    "save_error": "Failed to save notification settings",
+    "child": {
+      "section_title": "My Reminders",
+      "enable_button": "Turn on Reminders",
+      "enabled_label": "Reminders Active",
+      "enabled_description": "You'll get a daily reminder to exercise",
+      "disable_button": "Turn off",
+      "reminder_time_label": "Reminder Time",
+      "reminder_body": "Hey champ! Time for your eye exercises!"
+    }
+  },
   "completion_modal": {
     "title": "Exercise Complete!",
     "subtitle": "Great job! Keep it up!",

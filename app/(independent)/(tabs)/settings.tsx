@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useChildSession } from '@/contexts/ChildSessionContext';
 import { Globe, LogOut, MessageCircle, Globe2, Eye, Glasses } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+import NotificationSettings from '@/components/NotificationSettings';
 
 export default function IndependentSettingsScreen() {
   const router = useRouter();
@@ -154,6 +155,19 @@ export default function IndependentSettingsScreen() {
             </View>
           </View>
         </View>
+
+        {profile && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('notifications.section_title')}</Text>
+            <NotificationSettings
+              profileId={profile.id}
+              initialToken={profile.expo_push_token}
+              initialReminderTime={profile.daily_reminder_time}
+              accentColor="#0369A1"
+              accentBg="#E0F2FE"
+            />
+          </View>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('independent.settings.support_section')}</Text>

@@ -438,6 +438,29 @@
     "stat_practice_time": "זמן אימון",
     "stat_last_activity": "פעילות אחרונה"
   },
+  "notifications": {
+    "section_title": "התראות",
+    "enable_label": "הפעל התראות",
+    "enable_description": "קבל תזכורת יומית לאימון",
+    "reminder_time_label": "שעת תזכורת יומית",
+    "reminder_time_description": "מתי לשלוח תזכורת?",
+    "reminder_title": "הגיע הזמן להתאמן!",
+    "reminder_body": "האימון היומי לעיניים מחכה לך. קדימה!",
+    "enabled_success": "התראות הופעלו",
+    "disabled_success": "התראות כובו",
+    "permission_denied": "הרשאת התראות נדחתה. הפעל אותה בהגדרות המכשיר.",
+    "not_available": "התראות אינן זמינות במכשיר זה",
+    "save_error": "שמירת הגדרות ההתראות נכשלה",
+    "child": {
+      "section_title": "התזכורות שלי",
+      "enable_button": "הפעל תזכורות",
+      "enabled_label": "תזכורות פעילות",
+      "enabled_description": "תקבל תזכורת יומית להתאמן",
+      "disable_button": "כבה",
+      "reminder_time_label": "שעת תזכורת",
+      "reminder_body": "היי אלוף! הגיע הזמן לתרגילי עיניים!"
+    }
+  },
   "completion_modal": {
     "title": "!התרגיל הושלם",
     "subtitle": "!כל הכבוד! המשיכו כך",

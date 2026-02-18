@@ -556,6 +556,16 @@ export interface Database {
           error: string | null
         }
       }
+      update_child_reminder_time: {
+        Args: {
+          p_child_id: string
+          p_time: string
+        }
+        Returns: {
+          success: boolean
+          error: string | null
+        }
+      }
     }
     Enums: {}
   }

@@ -6,6 +6,7 @@ import { Globe, LogOut, Settings as SettingsIcon, MessageCircle, Globe2 } from '
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
+import NotificationSettings from '@/components/NotificationSettings';
 
 type Child = Database['public']['Tables']['children']['Row'];
 
@@ -304,6 +305,19 @@ export default function SettingsScreen() {
             </View>
           </View>
         </View>
+
+        {profile && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('notifications.section_title')}</Text>
+            <NotificationSettings
+              profileId={profile.id}
+              initialToken={profile.expo_push_token}
+              initialReminderTime={profile.daily_reminder_time}
+              accentColor="#4F46E5"
+              accentBg="#EEF2FF"
+            />
+          </View>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.sections.support_info')}</Text>

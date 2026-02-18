@@ -1,8 +1,9 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, I18nManager } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChildSession } from '@/contexts/ChildSessionContext';
-import { Globe, LogOut, User } from 'lucide-react-native';
+import { Globe, LogOut } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+import ChildReminderSection from '@/components/ChildReminderSection';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -68,6 +69,17 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+
+        {child && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('notifications.child.section_title')}</Text>
+            <ChildReminderSection
+              childId={child.id}
+              initialToken={child.expo_push_token}
+              initialReminderTime={child.daily_reminder_time}
+            />
+          </View>
+        )}
 
         <View style={styles.footer}>
           <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
