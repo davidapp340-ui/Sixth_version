@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, useWindowDimensions } from 'react-native';
-import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, useWindowDimensions, Platform } from 'react-native';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,36 +15,70 @@ import { Check, Lock, Star, Gift } from 'lucide-react-native';
 import { useChildSession } from '@/contexts/ChildSessionContext';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
+import { getThemeById, type WorldTheme } from '@/lib/worldThemes';
+import SvgConnectedPath, { type NodeCoord } from '@/components/game-path/SvgConnectedPath';
 import React from 'react';
 
 type DailyPlan = Database['public']['Tables']['daily_plans']['Row'];
-type Child = Database['public']['Tables']['children']['Row'];
 
 const NODE_SIZE = 60;
+const CURRENT_NODE_SIZE = 72;
+const VERTICAL_SPACING = 120;
+const TOP_PADDING = 40;
+const BOTTOM_PADDING = 120;
+const SINE_FREQUENCY = 0.55;
 
-const THEME_BACKGROUNDS = {
-  forest: ['#1E3A20', '#2D5016', '#4A7C59'],
-  ocean: ['#0C2D48', '#145DA0', '#2E8BC0'],
-  desert: ['#8B4513', '#CD853F', '#DEB887'],
-  mountain: ['#4A5568', '#718096', '#A0AEC0'],
-};
+function computeSinePositions(
+  count: number,
+  containerWidth: number,
+): NodeCoord[] {
+  const centerX = containerWidth / 2;
+  const amplitude = containerWidth * 0.28;
+  const totalHeight = (count - 1) * VERTICAL_SPACING + TOP_PADDING + BOTTOM_PADDING;
+
+  const positions: NodeCoord[] = [];
+  for (let i = 0; i < count; i++) {
+    const fromBottom = count - 1 - i;
+    positions.push({
+      x: centerX + Math.sin(i * SINE_FREQUENCY) * amplitude,
+      y: TOP_PADDING + fromBottom * VERTICAL_SPACING,
+    });
+  }
+
+  return positions;
+}
 
 export default function PathScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { child, loading: sessionLoading } = useChildSession();
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const [dailyPlans, setDailyPlans] = useState<DailyPlan[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [claimingTreasure, setClaimingTreasure] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
-  const PATH_WIDTH = screenWidth - 80;
+  const pathWidth = screenWidth;
+  const dayCount = 30;
+
+  const nodePositions = useMemo(
+    () => computeSinePositions(dayCount, pathWidth),
+    [dayCount, pathWidth]
+  );
+
+  const totalPathHeight = useMemo(
+    () => (dayCount - 1) * VERTICAL_SPACING + TOP_PADDING + BOTTOM_PADDING,
+    [dayCount]
+  );
+
+  const theme = useMemo<WorldTheme>(() => {
+    if (!child) return getThemeById('forest');
+    return getThemeById(child.path_theme_id || 'forest');
+  }, [child?.path_theme_id]);
 
   const fetchData = async () => {
-    if (!child?.id || !child?.track_level) {
-      return;
-    }
+    if (!child?.id || !child?.track_level) return;
 
     try {
       setDataLoading(true);
@@ -73,6 +107,25 @@ export default function PathScreen() {
       }
     }, [child?.id])
   );
+
+  useEffect(() => {
+    if (!child || !scrollRef.current || nodePositions.length === 0) return;
+
+    const timer = setTimeout(() => {
+      const currentIndex = child.path_day - 1;
+      if (currentIndex < 0 || currentIndex >= nodePositions.length) return;
+
+      const nodeY = nodePositions[currentIndex].y;
+      const scrollTarget = nodeY - screenHeight / 2 + NODE_SIZE / 2;
+
+      scrollRef.current?.scrollTo({
+        y: Math.max(0, scrollTarget),
+        animated: false,
+      });
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [child?.path_day, nodePositions, screenHeight]);
 
   const handleNodePress = async (day: number, plan: DailyPlan | undefined) => {
     if (!child) return;
@@ -132,26 +185,19 @@ export default function PathScreen() {
     }
   };
 
-  const getNodePosition = (index: number, pathWidth: number) => {
-    const row = Math.floor(index / 5);
-    const col = index % 5;
-    const isEvenRow = row % 2 === 0;
-
-    const x = isEvenRow ? col * (pathWidth / 4) : (4 - col) * (pathWidth / 4);
-    const y = row * 100;
-
-    return { x, y };
-  };
-
   const renderNode = (day: number, index: number) => {
     if (!child) return null;
 
     const plan = dailyPlans.find(p => p.day_number === day);
-    const position = getNodePosition(index, PATH_WIDTH);
+    const pos = nodePositions[index];
+    if (!pos) return null;
+
     const isRestDay = [7, 14, 21, 28].includes(day);
     const isPast = day < child.path_day;
     const isCurrent = day === child.path_day;
     const isFuture = day > child.path_day;
+    const size = isCurrent ? CURRENT_NODE_SIZE : NODE_SIZE;
+    const half = size / 2;
 
     return (
       <TouchableOpacity
@@ -159,8 +205,9 @@ export default function PathScreen() {
         style={[
           styles.nodeContainer,
           {
-            left: position.x,
-            top: position.y,
+            left: pos.x - half,
+            top: pos.y - half,
+            width: size + 40,
           }
         ]}
         onPress={() => handleNodePress(day, plan)}
@@ -169,7 +216,7 @@ export default function PathScreen() {
       >
         {isCurrent && !isRestDay && (
           <View style={styles.avatarContainer}>
-            <Star size={32} color="#FFD700" fill="#FFD700" />
+            <Star size={28} color="#FFD700" fill="#FFD700" />
           </View>
         )}
 
@@ -178,6 +225,8 @@ export default function PathScreen() {
             isPast={isPast}
             isCurrent={isCurrent}
             isFuture={isFuture}
+            size={size}
+            theme={theme}
           />
         ) : (
           <DayNode
@@ -186,6 +235,8 @@ export default function PathScreen() {
             isCurrent={isCurrent}
             isFuture={isFuture}
             title={plan?.title}
+            size={size}
+            theme={theme}
           />
         )}
       </TouchableOpacity>
@@ -194,7 +245,7 @@ export default function PathScreen() {
 
   if (sessionLoading || dataLoading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.backgroundColors[0] }]}>
         <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </View>
     );
@@ -218,7 +269,7 @@ export default function PathScreen() {
 
   if (loadError) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.backgroundColors[0] }]}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{t('common.error_loading_data')}</Text>
           <TouchableOpacity
@@ -232,12 +283,12 @@ export default function PathScreen() {
     );
   }
 
-  const themeColors = (THEME_BACKGROUNDS[child.path_theme_id as keyof typeof THEME_BACKGROUNDS] || THEME_BACKGROUNDS.forest) as [string, string, string];
+  const completedCount = Math.max(0, child.path_day - 1);
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={themeColors}
+        colors={theme.backgroundColors}
         style={StyleSheet.absoluteFill}
       />
 
@@ -250,25 +301,37 @@ export default function PathScreen() {
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>{t('path.streak')}</Text>
-            <Text style={styles.statValue}>🔥 {child.current_streak}</Text>
+            <Text style={styles.statValue}>{child.current_streak}</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>{t('path.points')}</Text>
-            <Text style={styles.statValue}>⭐ {child.total_points}</Text>
+            <Text style={styles.statValue}>{child.total_points}</Text>
           </View>
         </View>
       </View>
 
       <ScrollView
+        ref={scrollRef}
         style={styles.scrollView}
-        contentContainerStyle={styles.pathContainer}
+        contentContainerStyle={[
+          styles.pathContainer,
+          { height: totalPathHeight },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.pathWrapper, { width: PATH_WIDTH }]}>
-          {Array.from({ length: 30 }, (_, i) => i + 1).map((day, index) =>
-            renderNode(day, index)
-          )}
-        </View>
+        <SvgConnectedPath
+          nodes={nodePositions}
+          width={pathWidth}
+          height={totalPathHeight}
+          pathColor={theme.pathColor}
+          strokeColor={theme.pathStroke}
+          completedCount={completedCount}
+          completedColor={theme.nodeColor}
+        />
+
+        {Array.from({ length: dayCount }, (_, i) => i + 1).map((day, index) =>
+          renderNode(day, index)
+        )}
       </ScrollView>
     </View>
   );
@@ -279,13 +342,17 @@ function DayNode({
   isPast,
   isCurrent,
   isFuture,
-  title
+  title,
+  size,
+  theme,
 }: {
   day: number;
   isPast: boolean;
   isCurrent: boolean;
   isFuture: boolean;
   title?: string;
+  size: number;
+  theme: WorldTheme;
 }) {
   const scale = useSharedValue(1);
 
@@ -306,25 +373,66 @@ function DayNode({
     transform: [{ scale: scale.value }],
   }));
 
+  const bgColor = isPast
+    ? theme.nodeColor
+    : isCurrent
+      ? theme.currentGlow
+      : theme.lockedNodeColor;
+  const borderColor = isPast
+    ? theme.nodeStroke
+    : isCurrent
+      ? '#E6B800'
+      : theme.lockedNodeStroke;
+
   return (
     <View style={styles.nodeWrapper}>
+      {isCurrent && (
+        <View style={[
+          styles.glowRing,
+          {
+            width: size + 16,
+            height: size + 16,
+            borderRadius: (size + 16) / 2,
+            backgroundColor: theme.currentGlow,
+            opacity: 0.25,
+          },
+        ]} />
+      )}
       <Animated.View
         style={[
-          styles.node,
-          isPast && styles.nodePast,
-          isCurrent && styles.nodeCurrent,
-          isFuture && styles.nodeFuture,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            justifyContent: 'center' as const,
+            alignItems: 'center' as const,
+            borderWidth: 3,
+            backgroundColor: bgColor,
+            borderColor: borderColor,
+          },
           isCurrent && animatedStyle,
+          isCurrent && Platform.select({
+            web: { boxShadow: `0 0 18px ${theme.currentGlow}80` } as any,
+            default: {
+              shadowColor: theme.currentGlow,
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.6,
+              shadowRadius: 12,
+              elevation: 10,
+            },
+          }),
         ]}
       >
         {isPast && <Check size={24} color="#FFFFFF" strokeWidth={3} />}
         {isCurrent && <Text style={styles.nodeTextCurrent}>{day}</Text>}
-        {isFuture && <Lock size={20} color="#9CA3AF" />}
+        {isFuture && <Lock size={20} color="#6B7280" />}
       </Animated.View>
       {title && isCurrent && (
-        <Text style={styles.nodeTitle} numberOfLines={2}>
-          {title}
-        </Text>
+        <View style={styles.titleBubble}>
+          <Text style={styles.nodeTitle} numberOfLines={2}>
+            {title}
+          </Text>
+        </View>
       )}
     </View>
   );
@@ -333,11 +441,15 @@ function DayNode({
 function TreasureNode({
   isPast,
   isCurrent,
-  isFuture
+  isFuture,
+  size,
+  theme,
 }: {
   isPast: boolean;
   isCurrent: boolean;
   isFuture: boolean;
+  size: number;
+  theme: WorldTheme;
 }) {
   const rotation = useSharedValue(0);
 
@@ -359,25 +471,66 @@ function TreasureNode({
     transform: [{ rotate: `${rotation.value}deg` }],
   }));
 
+  const bgColor = isPast
+    ? theme.nodeColor
+    : isCurrent
+      ? theme.currentGlow
+      : theme.lockedNodeColor;
+  const borderColor = isPast
+    ? theme.nodeStroke
+    : isCurrent
+      ? '#E6B800'
+      : theme.lockedNodeStroke;
+
   return (
     <View style={styles.nodeWrapper}>
+      {isCurrent && (
+        <View style={[
+          styles.glowRing,
+          {
+            width: size + 16,
+            height: size + 16,
+            borderRadius: (size + 16) / 2,
+            backgroundColor: theme.currentGlow,
+            opacity: 0.25,
+          },
+        ]} />
+      )}
       <Animated.View
         style={[
-          styles.treasureNode,
-          isPast && styles.treasurePast,
-          isCurrent && styles.treasureCurrent,
-          isFuture && styles.treasureFuture,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            justifyContent: 'center' as const,
+            alignItems: 'center' as const,
+            borderWidth: 3,
+            backgroundColor: bgColor,
+            borderColor: borderColor,
+          },
           isCurrent && animatedStyle,
+          isCurrent && Platform.select({
+            web: { boxShadow: `0 0 18px ${theme.currentGlow}80` } as any,
+            default: {
+              shadowColor: theme.currentGlow,
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.6,
+              shadowRadius: 12,
+              elevation: 10,
+            },
+          }),
         ]}
       >
         <Gift
-          size={32}
-          color={isFuture ? '#9CA3AF' : '#FFD700'}
+          size={isCurrent ? 28 : 24}
+          color={isFuture ? '#6B7280' : '#FFD700'}
           fill={isPast ? '#FFD700' : 'none'}
         />
       </Animated.View>
       {isCurrent && (
-        <Text style={styles.treasureLabel}>Tap to open!</Text>
+        <View style={styles.titleBubble}>
+          <Text style={styles.treasureLabel}>Tap to open!</Text>
+        </View>
       )}
     </View>
   );
@@ -386,143 +539,102 @@ function TreasureNode({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#0F2A1D',
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 16,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    zIndex: 10,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontWeight: '800',
     color: '#FFFFFF',
-    marginBottom: 16,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    marginBottom: 12,
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
   statsContainer: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   statBox: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    padding: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    padding: 10,
     borderRadius: 12,
     alignItems: 'center',
   },
   statLabel: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    opacity: 0.9,
-    marginBottom: 4,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.7)',
+    fontWeight: '600',
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   statValue: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '800',
     color: '#FFFFFF',
   },
   scrollView: {
     flex: 1,
   },
   pathContainer: {
-    padding: 20,
-    paddingBottom: 100,
-  },
-  pathWrapper: {
     position: 'relative',
-    height: 620,
-    alignSelf: 'center',
   },
   nodeContainer: {
     position: 'absolute',
     alignItems: 'center',
+    zIndex: 2,
   },
   nodeWrapper: {
     alignItems: 'center',
-    width: NODE_SIZE + 40,
+  },
+  glowRing: {
+    position: 'absolute',
+    top: -8,
+    alignSelf: 'center',
   },
   avatarContainer: {
     position: 'absolute',
-    top: -40,
+    top: -36,
     zIndex: 10,
-  },
-  node: {
-    width: NODE_SIZE,
-    height: NODE_SIZE,
-    borderRadius: NODE_SIZE / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-  },
-  nodePast: {
-    backgroundColor: '#10B981',
-    borderColor: '#059669',
-  },
-  nodeCurrent: {
-    backgroundColor: '#FFD700',
-    borderColor: '#FFA500',
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  nodeFuture: {
-    backgroundColor: '#E5E7EB',
-    borderColor: '#D1D5DB',
+    alignSelf: 'center',
   },
   nodeTextCurrent: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '800',
     color: '#1F2937',
   },
+  titleBubble: {
+    marginTop: 6,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
   nodeTitle: {
-    marginTop: 8,
-    fontSize: 12,
+    fontSize: 11,
     color: '#FFFFFF',
     textAlign: 'center',
     fontWeight: '600',
-    maxWidth: 80,
-  },
-  treasureNode: {
-    width: NODE_SIZE,
-    height: NODE_SIZE,
-    borderRadius: NODE_SIZE / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-  },
-  treasurePast: {
-    backgroundColor: '#10B981',
-    borderColor: '#059669',
-  },
-  treasureCurrent: {
-    backgroundColor: '#FFD700',
-    borderColor: '#FFA500',
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  treasureFuture: {
-    backgroundColor: '#E5E7EB',
-    borderColor: '#D1D5DB',
+    maxWidth: 90,
   },
   treasureLabel: {
-    marginTop: 8,
-    fontSize: 12,
+    fontSize: 11,
     color: '#FFD700',
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   loadingText: {
     fontSize: 18,
-    color: '#6B7280',
+    color: '#FFFFFF',
+    opacity: 0.7,
     textAlign: 'center',
     marginTop: 100,
   },
@@ -534,7 +646,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 18,
-    color: '#DC2626',
+    color: '#F87171',
     textAlign: 'center',
     marginBottom: 20,
   },
