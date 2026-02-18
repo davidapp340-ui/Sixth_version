@@ -5,6 +5,7 @@ import { useChildSession } from '@/contexts/ChildSessionContext';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import StatsRow from '@/components/StatsRow';
+import { getAvatarEntry } from '@/lib/avatars';
 
 interface ChildProgress {
   total_points: number;
@@ -54,11 +55,20 @@ export default function ChildHomeScreen() {
     }, [fetchProgress])
   );
 
+  const avatar = getAvatarEntry(child?.avatar_id ?? 'default');
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{t('child_home.title')}</Text>
-        <Text style={styles.subtitle}>{t('child_home.welcome', { childName: child?.name })}</Text>
+        <View style={styles.headerRow}>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>{t('child_home.title')}</Text>
+            <Text style={styles.subtitle}>{t('child_home.welcome', { childName: child?.name })}</Text>
+          </View>
+          <View style={[styles.headerAvatar, { backgroundColor: avatar.color + '20' }]}>
+            <Text style={styles.headerAvatarEmoji}>{avatar.emoji}</Text>
+          </View>
+        </View>
       </View>
 
       {loading ? (
@@ -97,6 +107,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerText: {
+    flex: 1,
+  },
+  headerAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  headerAvatarEmoji: {
+    fontSize: 24,
   },
   title: {
     fontSize: 32,

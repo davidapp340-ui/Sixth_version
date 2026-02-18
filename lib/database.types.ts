@@ -40,6 +40,7 @@ export interface Database {
           is_active_session: boolean
           last_heartbeat: string | null
           session_device_id: string | null
+          avatar_id: string
         }
         Insert: {
           id?: string
@@ -71,6 +72,7 @@ export interface Database {
           is_active_session?: boolean
           last_heartbeat?: string | null
           session_device_id?: string | null
+          avatar_id?: string
         }
         Update: {
           id?: string
@@ -102,6 +104,7 @@ export interface Database {
           is_active_session?: boolean
           last_heartbeat?: string | null
           session_device_id?: string | null
+          avatar_id?: string
         }
         Relationships: []
       }

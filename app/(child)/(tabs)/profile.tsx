@@ -1,21 +1,36 @@
+import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, I18nManager } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChildSession } from '@/contexts/ChildSessionContext';
-import { Globe, LogOut } from 'lucide-react-native';
+import { Globe, LogOut, Pencil } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import ChildReminderSection from '@/components/ChildReminderSection';
+import AvatarPickerModal from '@/components/AvatarPickerModal';
+import { getAvatarEntry } from '@/lib/avatars';
+import { supabase } from '@/lib/supabase';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { child, clearChildSession } = useChildSession();
+  const { child, clearChildSession, refreshChild } = useChildSession();
   const { t, i18n } = useTranslation();
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [localAvatarId, setLocalAvatarId] = useState<string | null>(null);
 
-  const getInitials = (name: string): string => {
-    const parts = name?.split(' ') || [];
-    if (parts.length >= 2) {
-      return `${parts[0].charAt(0).toUpperCase()}${parts[1].charAt(0).toUpperCase()}`;
-    }
-    return name?.charAt(0)?.toUpperCase() || 'C';
+  const avatarId = localAvatarId ?? child?.avatar_id ?? 'default';
+  const avatar = getAvatarEntry(avatarId);
+
+  const handleAvatarSelect = async (newAvatarId: string) => {
+    setLocalAvatarId(newAvatarId);
+    setPickerVisible(false);
+
+    if (!child?.id) return;
+
+    await supabase
+      .from('children')
+      .update({ avatar_id: newAvatarId })
+      .eq('id', child.id);
+
+    refreshChild();
   };
 
   const toggleLanguage = async () => {
@@ -34,13 +49,21 @@ export default function ProfileScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={styles.profileSection}>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>
-                {getInitials(child?.name || '')}
-              </Text>
-            </View>
+            <TouchableOpacity
+              style={styles.avatarTouchable}
+              onPress={() => setPickerVisible(true)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.avatarCircle, { backgroundColor: avatar.color + '20' }]}>
+                <Text style={styles.avatarEmoji}>{avatar.emoji}</Text>
+              </View>
+              <View style={styles.editBadge}>
+                <Pencil size={12} color="#FFFFFF" />
+              </View>
+            </TouchableOpacity>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>{child?.name}</Text>
+              <Text style={styles.tapHint}>{t('avatar_picker.tap_to_change')}</Text>
             </View>
           </View>
         </View>
@@ -88,6 +111,13 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <AvatarPickerModal
+        visible={pickerVisible}
+        currentAvatarId={avatarId}
+        onSelect={handleAvatarSelect}
+        onClose={() => setPickerVisible(false)}
+      />
     </View>
   );
 }
@@ -113,18 +143,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
+  avatarTouchable: {
+    position: 'relative',
+  },
   avatarCircle: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+  avatarEmoji: {
+    fontSize: 36,
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#10B981',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
   profileInfo: {
     flex: 1,
@@ -133,6 +176,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#111827',
+  },
+  tapHint: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    marginTop: 2,
   },
   section: {
     padding: 20,

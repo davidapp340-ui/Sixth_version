@@ -18,6 +18,10 @@
     "science": "Science",
     "settings": "Settings"
   },
+  "avatar_picker": {
+    "title": "Choose Your Avatar",
+    "tap_to_change": "Tap to change"
+  },
   "role_selection": {
     "title": "Zoomi",
     "subtitle": "Select Role",

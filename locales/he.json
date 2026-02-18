@@ -18,6 +18,10 @@
     "science": "מדע",
     "settings": "הגדרות"
   },
+  "avatar_picker": {
+    "title": "בחר את הדמות שלך",
+    "tap_to_change": "לחץ לשינוי"
+  },
   "role_selection": {
     "title": "Zoomi",
     "subtitle": "בחר תפקיד",
