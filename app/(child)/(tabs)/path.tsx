@@ -134,7 +134,7 @@ export default function PathScreen() {
   const handleNodePress = async (day: number, plan: DailyPlan | undefined) => {
     if (!child) return;
 
-    if (day !== child.path_day) {
+    if (day > child.path_day) {
       return;
     }
 
@@ -148,9 +148,9 @@ export default function PathScreen() {
 
     const isRestDay = [7, 14, 21, 28].includes(day);
 
-    if (isRestDay) {
+    if (isRestDay && day === child.path_day) {
       await handleClaimTreasure();
-    } else {
+    } else if (!isRestDay) {
       setSelectedPlan(plan);
       setIsPreviewVisible(true);
     }
@@ -213,8 +213,8 @@ export default function PathScreen() {
           }
         ]}
         onPress={() => handleNodePress(day, plan)}
-        disabled={!isCurrent}
-        activeOpacity={isCurrent ? 0.7 : 1}
+        disabled={isFuture}
+        activeOpacity={isFuture ? 1 : 0.7}
       >
         {isCurrent && !isRestDay && (
           <View style={styles.avatarContainer}>
@@ -355,14 +355,12 @@ export default function PathScreen() {
           setSelectedPlan(null);
         }}
         plan={selectedPlan}
-        onStart={() => {
+        onStart={(firstExerciseId: string) => {
           setIsPreviewVisible(false);
-          if (selectedPlan) {
-            router.push({
-              pathname: '/exercise-player',
-              params: { planId: selectedPlan.id },
-            });
-          }
+          router.push({
+            pathname: '/exercise-player',
+            params: { exerciseId: firstExerciseId },
+          });
           setSelectedPlan(null);
         }}
       />

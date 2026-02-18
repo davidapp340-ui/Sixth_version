@@ -20,6 +20,7 @@ type DailyPlan = Database['public']['Tables']['daily_plans']['Row'];
 
 interface WorkoutExercise {
   id: string;
+  exercise_id: string;
   sequence_order: number;
   duration_seconds: number | null;
   target_reps: number | null;
@@ -30,7 +31,7 @@ interface DayPreviewModalProps {
   visible: boolean;
   onClose: () => void;
   plan: DailyPlan | null;
-  onStart: () => void;
+  onStart: (firstExerciseId: string) => void;
 }
 
 export default function DayPreviewModal({
@@ -71,6 +72,7 @@ export default function DayPreviewModal({
 
       const mapped: WorkoutExercise[] = (data || []).map((item: any) => ({
         id: item.id,
+        exercise_id: item.exercise_id,
         sequence_order: item.sequence_order,
         duration_seconds: item.duration_seconds,
         target_reps: item.target_reps,
@@ -231,8 +233,12 @@ export default function DayPreviewModal({
             </View>
 
             <TouchableOpacity
-              style={[styles.startButton, loading && styles.startButtonDisabled]}
-              onPress={onStart}
+              style={[styles.startButton, (loading || exercises.length === 0) && styles.startButtonDisabled]}
+              onPress={() => {
+                if (exercises.length > 0) {
+                  onStart(exercises[0].exercise_id);
+                }
+              }}
               disabled={loading || exercises.length === 0}
               activeOpacity={0.8}
             >

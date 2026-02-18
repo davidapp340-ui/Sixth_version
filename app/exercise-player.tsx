@@ -66,14 +66,53 @@ export default function ExercisePlayerScreen() {
       setLoading(true);
       setError(null);
 
-      const libraryItemId = params.libraryItemId as string;
+      const libraryItemId = params.libraryItemId as string | undefined;
+      const exerciseId = params.exerciseId as string | undefined;
 
-      if (!libraryItemId) {
+      if (!libraryItemId && !exerciseId) {
         setError('No exercise specified');
         return;
       }
 
-      const item = await getLibraryItemById(libraryItemId);
+      let item: LibraryItemWithExercise | null = null;
+
+      if (libraryItemId) {
+        item = await getLibraryItemById(libraryItemId);
+      } else if (exerciseId) {
+        const { data, error: fetchError } = await supabase
+          .from('exercises')
+          .select('*')
+          .eq('id', exerciseId)
+          .maybeSingle();
+
+        if (fetchError) throw fetchError;
+
+        if (data) {
+          item = {
+            id: data.id,
+            exercise_id: data.id,
+            category_name: '',
+            category_color: '#4A90E2',
+            enable_audio: !!(data.audio_path_en || data.audio_path_he),
+            enable_animation: true,
+            sort_order: 0,
+            created_at: data.created_at,
+            updated_at: data.updated_at,
+            exercise: {
+              id: data.id,
+              animation_id: data.animation_id,
+              icon_id: data.icon_id,
+              audio_path_en: data.audio_path_en,
+              audio_path_he: data.audio_path_he,
+              title_en: data.title_en,
+              title_he: data.title_he,
+              description_en: data.description_en,
+              description_he: data.description_he,
+              status: data.status,
+            },
+          } as LibraryItemWithExercise;
+        }
+      }
 
       if (!item) {
         setError('Exercise not found');
