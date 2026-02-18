@@ -13,6 +13,11 @@
     "ok": "OK",
     "error_loading_data": "Failed to load data. Please try again."
   },
+  "nav": {
+    "home": "Home",
+    "science": "Science",
+    "settings": "Settings"
+  },
   "role_selection": {
     "title": "Zoomi",
     "subtitle": "Select Role",

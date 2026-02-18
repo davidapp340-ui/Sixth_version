@@ -13,6 +13,11 @@
     "ok": "אישור",
     "error_loading_data": "נכשל בטעינת הנתונים. אנא נסה שוב."
   },
+  "nav": {
+    "home": "בית",
+    "science": "מדע",
+    "settings": "הגדרות"
+  },
   "role_selection": {
     "title": "Zoomi",
     "subtitle": "בחר תפקיד",

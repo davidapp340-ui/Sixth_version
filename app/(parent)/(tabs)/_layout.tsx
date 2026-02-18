@@ -74,21 +74,21 @@ export default function ParentTabsLayout() {
       <SwipableTabs.Screen
         name="home"
         options={{
-          title: 'Home',
+          title: t('nav.home'),
           tabBarIcon: ({ color }) => <Home size={20} color={color} />,
         }}
       />
       <SwipableTabs.Screen
         name="science"
         options={{
-          title: 'Science',
+          title: t('nav.science'),
           tabBarIcon: ({ color }) => <Lightbulb size={20} color={color} />,
         }}
       />
       <SwipableTabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: t('nav.settings'),
           tabBarIcon: ({ color }) => <Settings size={20} color={color} />,
         }}
       />
