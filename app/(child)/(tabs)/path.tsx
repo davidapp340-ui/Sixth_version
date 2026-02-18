@@ -112,24 +112,26 @@ export default function PathScreen() {
     }, [child?.id])
   );
 
-  useEffect(() => {
-    if (!child || !scrollRef.current || nodePositions.length === 0) return;
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!child || !scrollRef.current || nodePositions.length === 0) return;
 
-    const timer = setTimeout(() => {
-      const currentIndex = child.path_day - 1;
-      if (currentIndex < 0 || currentIndex >= nodePositions.length) return;
+      const timer = setTimeout(() => {
+        const currentIndex = child.path_day - 1;
+        if (currentIndex < 0 || currentIndex >= nodePositions.length) return;
 
-      const nodeY = nodePositions[currentIndex].y;
-      const scrollTarget = nodeY - screenHeight / 2 + NODE_SIZE / 2;
+        const nodeY = nodePositions[currentIndex].y;
+        const scrollTarget = nodeY - screenHeight / 2 + NODE_SIZE / 2;
 
-      scrollRef.current?.scrollTo({
-        y: Math.max(0, scrollTarget),
-        animated: false,
-      });
-    }, 150);
+        scrollRef.current?.scrollTo({
+          y: Math.max(0, scrollTarget),
+          animated: true,
+        });
+      }, 150);
 
-    return () => clearTimeout(timer);
-  }, [child?.path_day, nodePositions, screenHeight]);
+      return () => clearTimeout(timer);
+    }, [child?.path_day, nodePositions, screenHeight])
+  );
 
   const handleNodePress = async (day: number, plan: DailyPlan | undefined) => {
     if (!child) return;
