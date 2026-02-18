@@ -466,5 +466,10 @@
     "subtitle": "Great job! Keep it up!",
     "points_label": "Coins",
     "button": "Awesome!"
+  },
+  "session_lock": {
+    "blocked_title": "Session Active",
+    "blocked_message": "This account is currently in use on another device. Please close the other session first, or wait a couple of minutes and try again.",
+    "ok_button": "OK"
   }
 }

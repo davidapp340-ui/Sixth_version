@@ -12,6 +12,7 @@ import { useChildSession } from '@/contexts/ChildSessionContext';
 import { ArrowLeft } from 'lucide-react-native';
 import * as Device from 'expo-device';
 import { useTranslation } from 'react-i18next';
+import { checkChildSessionLock } from '@/lib/sessionLock';
 
 export default function ChildLoginScreen() {
   const router = useRouter();
@@ -41,6 +42,11 @@ export default function ChildLoginScreen() {
       if (linkError) {
         setError(linkError.message || t('child_login.errors.code_invalid_or_expired'));
       } else if (child) {
+        const lockResult = await checkChildSessionLock(child.id);
+        if (lockResult.locked) {
+          setError(t('session_lock.blocked_message'));
+          return;
+        }
         router.replace('/(child)/home');
       }
     } catch (err) {

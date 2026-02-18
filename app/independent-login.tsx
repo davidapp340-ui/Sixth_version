@@ -15,6 +15,8 @@ import { ArrowLeft } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChildSession } from '@/contexts/ChildSessionContext';
+import { checkProfileSessionLock } from '@/lib/sessionLock';
+import { supabase } from '@/lib/supabase';
 
 export default function IndependentLoginScreen() {
   const router = useRouter();
@@ -59,6 +61,16 @@ export default function IndependentLoginScreen() {
         setError(authError.message || t('independent_login.errors.login_failed'));
         setLoading(false);
       } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const lockResult = await checkProfileSessionLock(user.id);
+          if (lockResult.locked) {
+            await supabase.auth.signOut();
+            setError(t('session_lock.blocked_message'));
+            setLoading(false);
+            return;
+          }
+        }
         setLoginComplete(true);
       }
     } catch (err) {

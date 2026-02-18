@@ -1,14 +1,28 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { View, Text, StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSessionHeartbeat } from '@/hooks/useSessionHeartbeat';
+import { getOrCreateDeviceId } from '@/lib/deviceId';
 
 export default function ParentLayout() {
   const { t } = useTranslation();
   const { profile, loading } = useAuth();
   const router = useRouter();
+  const [deviceId, setDeviceId] = useState<string | null>(null);
+
+  useEffect(() => {
+    getOrCreateDeviceId().then(setDeviceId);
+  }, []);
+
+  const heartbeatConfig = useMemo(() => {
+    if (!profile || !deviceId) return null;
+    return { type: 'profile' as const, deviceId };
+  }, [profile, deviceId]);
+
+  useSessionHeartbeat(heartbeatConfig);
 
   useEffect(() => {
     if (!loading && !profile) {

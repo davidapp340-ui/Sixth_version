@@ -101,6 +101,13 @@ export function ChildSessionProvider({ children }: { children: React.ReactNode }
   };
 
   const clearChildSession = async () => {
+    if (child) {
+      try {
+        await supabase.rpc('release_session_child', { p_child_id: child.id });
+      } catch (err) {
+        // Best-effort release
+      }
+    }
     await AsyncStorage.removeItem(DEVICE_ID_KEY);
     setChild(null);
   };

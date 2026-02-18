@@ -138,6 +138,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    try {
+      await supabase.rpc('release_session_profile');
+    } catch (err) {
+      // Best-effort release
+    }
     await supabase.auth.signOut();
     setProfile(null);
   };

@@ -14,6 +14,8 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowLeft } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+import { checkProfileSessionLock } from '@/lib/sessionLock';
+import { supabase } from '@/lib/supabase';
 
 export default function ParentAuthScreen() {
   const router = useRouter();
@@ -60,6 +62,17 @@ export default function ParentAuthScreen() {
 
       if (authError) {
         setError(authError.message || t('auth.errors.auth_failed'));
+      } else if (!isSignUp) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const lockResult = await checkProfileSessionLock(user.id);
+          if (lockResult.locked) {
+            await supabase.auth.signOut();
+            setError(t('session_lock.blocked_message'));
+            return;
+          }
+        }
+        router.replace('/(parent)/home');
       } else {
         router.replace('/(parent)/home');
       }

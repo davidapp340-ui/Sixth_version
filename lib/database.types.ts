@@ -37,6 +37,9 @@ export interface Database {
           last_activity_date: string | null
           expo_push_token: string | null
           daily_reminder_time: string | null
+          is_active_session: boolean
+          last_heartbeat: string | null
+          session_device_id: string | null
         }
         Insert: {
           id?: string
@@ -65,6 +68,9 @@ export interface Database {
           last_activity_date?: string | null
           expo_push_token?: string | null
           daily_reminder_time?: string | null
+          is_active_session?: boolean
+          last_heartbeat?: string | null
+          session_device_id?: string | null
         }
         Update: {
           id?: string
@@ -93,6 +99,9 @@ export interface Database {
           last_activity_date?: string | null
           expo_push_token?: string | null
           daily_reminder_time?: string | null
+          is_active_session?: boolean
+          last_heartbeat?: string | null
+          session_device_id?: string | null
         }
         Relationships: []
       }
@@ -107,6 +116,9 @@ export interface Database {
           last_name: string | null
           expo_push_token: string | null
           daily_reminder_time: string | null
+          is_active_session: boolean
+          last_heartbeat: string | null
+          session_device_id: string | null
         }
         Insert: {
           id: string
@@ -118,6 +130,9 @@ export interface Database {
           last_name?: string | null
           expo_push_token?: string | null
           daily_reminder_time?: string | null
+          is_active_session?: boolean
+          last_heartbeat?: string | null
+          session_device_id?: string | null
         }
         Update: {
           id?: string
@@ -129,6 +144,9 @@ export interface Database {
           last_name?: string | null
           expo_push_token?: string | null
           daily_reminder_time?: string | null
+          is_active_session?: boolean
+          last_heartbeat?: string | null
+          session_device_id?: string | null
         }
         Relationships: []
       }
@@ -564,6 +582,61 @@ export interface Database {
         Returns: {
           success: boolean
           error: string | null
+        }
+      }
+      check_session_lock_profile: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          locked: boolean
+          device_id?: string | null
+          reason?: string | null
+        }
+      }
+      check_session_lock_child: {
+        Args: {
+          p_child_id: string
+        }
+        Returns: {
+          locked: boolean
+          device_id?: string | null
+          reason?: string | null
+        }
+      }
+      heartbeat_profile: {
+        Args: {
+          p_device_id: string
+        }
+        Returns: {
+          success: boolean
+          error?: string | null
+        }
+      }
+      heartbeat_child: {
+        Args: {
+          p_child_id: string
+          p_device_id: string
+        }
+        Returns: {
+          success: boolean
+          error?: string | null
+        }
+      }
+      release_session_profile: {
+        Args: Record<string, never>
+        Returns: {
+          success: boolean
+          error?: string | null
+        }
+      }
+      release_session_child: {
+        Args: {
+          p_child_id: string
+        }
+        Returns: {
+          success: boolean
+          error?: string | null
         }
       }
     }
