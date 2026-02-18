@@ -18,6 +18,7 @@ import { Database } from '@/lib/database.types';
 import { getThemeById, type WorldTheme } from '@/lib/worldThemes';
 import SvgConnectedPath, { type NodeCoord } from '@/components/game-path/SvgConnectedPath';
 import PathDecoration from '@/components/path/PathDecoration';
+import DayPreviewModal from '@/components/path/DayPreviewModal';
 import React from 'react';
 
 type DailyPlan = Database['public']['Tables']['daily_plans']['Row'];
@@ -58,6 +59,8 @@ export default function PathScreen() {
   const [dataLoading, setDataLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [claimingTreasure, setClaimingTreasure] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<DailyPlan | null>(null);
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const pathWidth = screenWidth;
@@ -148,10 +151,8 @@ export default function PathScreen() {
     if (isRestDay) {
       await handleClaimTreasure();
     } else {
-      router.push({
-        pathname: '/exercise-player',
-        params: { planId: plan.id }
-      });
+      setSelectedPlan(plan);
+      setIsPreviewVisible(true);
     }
   };
 
@@ -346,6 +347,25 @@ export default function PathScreen() {
           renderNode(day, index)
         )}
       </ScrollView>
+
+      <DayPreviewModal
+        visible={isPreviewVisible}
+        onClose={() => {
+          setIsPreviewVisible(false);
+          setSelectedPlan(null);
+        }}
+        plan={selectedPlan}
+        onStart={() => {
+          setIsPreviewVisible(false);
+          if (selectedPlan) {
+            router.push({
+              pathname: '/exercise-player',
+              params: { planId: selectedPlan.id },
+            });
+          }
+          setSelectedPlan(null);
+        }}
+      />
     </View>
   );
 }
