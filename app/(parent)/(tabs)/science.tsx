@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { HelpCircle, ChevronRight } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
 
@@ -99,6 +100,25 @@ export default function ScienceScreen() {
       </View>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.articlesContainer}>
+          <TouchableOpacity
+            style={styles.faqCard}
+            onPress={() => router.push('/(parent)/faq')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.faqIconContainer}>
+              <HelpCircle size={28} color="#4F46E5" />
+            </View>
+            <View style={styles.faqTextContainer}>
+              <Text style={styles.faqTitle}>
+                {t('science.faq_card_title')}
+              </Text>
+              <Text style={styles.faqSubtitle}>
+                {t('science.faq_card_subtitle')}
+              </Text>
+            </View>
+            <ChevronRight size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+
           {articles.map((article) => (
             <TouchableOpacity
               key={article.id}
@@ -232,5 +252,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     lineHeight: 20,
+  },
+  faqCard: {
+    backgroundColor: '#EEF2FF',
+    borderRadius: 16,
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+  },
+  faqIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#E0E7FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  faqTextContainer: {
+    flex: 1,
+  },
+  faqTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#312E81',
+    marginBottom: 2,
+  },
+  faqSubtitle: {
+    fontSize: 13,
+    color: '#4F46E5',
+    lineHeight: 18,
   },
 });

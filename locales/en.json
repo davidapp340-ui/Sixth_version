@@ -284,10 +284,18 @@
     "loading": "Loading articles...",
     "empty": "No articles available yet",
     "error": "Failed to load articles. Please try again.",
+    "faq_card_title": "Questions & Answers",
+    "faq_card_subtitle": "Find answers to frequently asked questions",
     "article_detail": {
       "loading": "Loading article...",
       "error": "Failed to load article content",
       "back": "Back to Articles"
+    },
+    "faq": {
+      "title": "Questions & Answers",
+      "loading": "Loading questions...",
+      "empty": "No questions available yet",
+      "error": "Failed to load questions. Please try again."
     }
   },
   "independent_login": {
