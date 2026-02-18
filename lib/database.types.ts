@@ -35,6 +35,8 @@ export interface Database {
           current_month_cycle: number
           path_theme_id: string
           last_activity_date: string | null
+          expo_push_token: string | null
+          daily_reminder_time: string | null
         }
         Insert: {
           id?: string
@@ -61,6 +63,8 @@ export interface Database {
           current_month_cycle?: number
           path_theme_id?: string
           last_activity_date?: string | null
+          expo_push_token?: string | null
+          daily_reminder_time?: string | null
         }
         Update: {
           id?: string
@@ -87,6 +91,8 @@ export interface Database {
           current_month_cycle?: number
           path_theme_id?: string
           last_activity_date?: string | null
+          expo_push_token?: string | null
+          daily_reminder_time?: string | null
         }
         Relationships: []
       }
@@ -99,6 +105,8 @@ export interface Database {
           created_at: string
           first_name: string | null
           last_name: string | null
+          expo_push_token: string | null
+          daily_reminder_time: string | null
         }
         Insert: {
           id: string
@@ -108,6 +116,8 @@ export interface Database {
           created_at?: string
           first_name?: string | null
           last_name?: string | null
+          expo_push_token?: string | null
+          daily_reminder_time?: string | null
         }
         Update: {
           id?: string
@@ -117,6 +127,8 @@ export interface Database {
           created_at?: string
           first_name?: string | null
           last_name?: string | null
+          expo_push_token?: string | null
+          daily_reminder_time?: string | null
         }
         Relationships: []
       }
@@ -531,6 +543,16 @@ export interface Database {
         Returns: {
           success: boolean
           child: Database['public']['Tables']['children']['Row'] | null
+          error: string | null
+        }
+      }
+      update_child_push_token: {
+        Args: {
+          p_child_id: string
+          p_token: string
+        }
+        Returns: {
+          success: boolean
           error: string | null
         }
       }
