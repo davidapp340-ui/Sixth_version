@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
 import { getThemeById, type WorldTheme } from '@/lib/worldThemes';
 import SvgConnectedPath, { type NodeCoord } from '@/components/game-path/SvgConnectedPath';
+import PathDecoration from '@/components/path/PathDecoration';
 import React from 'react';
 
 type DailyPlan = Database['public']['Tables']['daily_plans']['Row'];
@@ -319,6 +320,18 @@ export default function PathScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
+        {nodePositions.map((pos, i) => (
+          <PathDecoration
+            key={`deco-${i}`}
+            rowIndex={i}
+            nodeX={pos.x}
+            nodeY={pos.y}
+            themeId={theme.id}
+            colors={theme.decoration}
+            containerWidth={pathWidth}
+          />
+        ))}
+
         <SvgConnectedPath
           nodes={nodePositions}
           width={pathWidth}
