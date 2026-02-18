@@ -16,12 +16,16 @@ interface CompletionModalProps {
   visible: boolean;
   pointsEarned: number;
   onDismiss: () => void;
+  isWorkout?: boolean;
+  exerciseCount?: number;
 }
 
 export default function CompletionModal({
   visible,
   pointsEarned,
   onDismiss,
+  isWorkout,
+  exerciseCount,
 }: CompletionModalProps) {
   const { t } = useTranslation();
   const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -116,8 +120,19 @@ export default function CompletionModal({
 
           {/* TODO: Add Victory Lottie Animation Here */}
 
-          <Text style={styles.title}>{t('completion_modal.title')}</Text>
-          <Text style={styles.subtitle}>{t('completion_modal.subtitle')}</Text>
+          <Text style={styles.title}>
+            {isWorkout
+              ? t('completion_modal.workout_title', { defaultValue: 'Workout Complete!' })
+              : t('completion_modal.title')}
+          </Text>
+          <Text style={styles.subtitle}>
+            {isWorkout
+              ? t('completion_modal.workout_subtitle', {
+                  defaultValue: 'You completed all {{count}} exercises!',
+                  count: exerciseCount ?? 0,
+                })
+              : t('completion_modal.subtitle')}
+          </Text>
 
           <Animated.View
             style={[styles.pointsContainer, { transform: [{ scale: coinScale }] }]}

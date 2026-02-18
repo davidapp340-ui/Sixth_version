@@ -30,6 +30,28 @@ export interface LibraryItemWithExercise extends LibraryItem {
   };
 }
 
+export interface ExerciseData {
+  id: string;
+  animation_id: string;
+  icon_id: string | null;
+  audio_path_en: string | null;
+  audio_path_he: string | null;
+  title_en: string;
+  title_he: string;
+  description_en: string | null;
+  description_he: string | null;
+  status: string;
+}
+
+export interface PlaylistExerciseItem {
+  workoutItemId: string;
+  exerciseId: string;
+  sequenceOrder: number;
+  durationSeconds: number | null;
+  targetReps: number | null;
+  exercise: ExerciseData;
+}
+
 /**
  * Category grouping for library display
  */
@@ -234,5 +256,26 @@ export function getLocalizedLibraryItem(
     title,
     description,
     audioUrl,
+  };
+}
+
+export function getExerciseAudioUrl(
+  exercise: ExerciseData,
+  locale: 'en' | 'he'
+): string | null {
+  const audioPath = locale === 'he' ? exercise.audio_path_he : exercise.audio_path_en;
+  if (!audioPath) return null;
+  const { data } = supabase.storage.from('exercise-audio').getPublicUrl(audioPath);
+  return data.publicUrl;
+}
+
+export function getLocalizedExercise(
+  exercise: ExerciseData,
+  locale: 'en' | 'he'
+): { title: string; description: string | null; audioUrl: string | null } {
+  return {
+    title: locale === 'he' ? exercise.title_he : exercise.title_en,
+    description: locale === 'he' ? exercise.description_he : exercise.description_en,
+    audioUrl: getExerciseAudioUrl(exercise, locale),
   };
 }

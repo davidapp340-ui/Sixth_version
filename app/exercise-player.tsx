@@ -1,372 +1,434 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Audio } from 'expo-av';
-import { ArrowLeft, Play, RotateCcw } from 'lucide-react-native';
-import { getLibraryItemById, getLocalizedLibraryItem } from '@/lib/library';
+import { ArrowLeft, Play, RotateCcw, SkipForward } from 'lucide-react-native';
+import {
+  getLibraryItemById,
+  getLocalizedLibraryItem,
+  getLocalizedExercise,
+} from '@/lib/library';
+import type { ExerciseData } from '@/lib/library';
 import { ExerciseAnimationRenderer } from '@/components/exercises/ExerciseRegistry';
 import CompletionModal from '@/components/exercises/CompletionModal';
+import PlaylistProgressBar from '@/components/exercises/PlaylistProgressBar';
+import ExerciseTimerDisplay from '@/components/exercises/ExerciseTimerDisplay';
+import ExerciseRepsPrompt from '@/components/exercises/ExerciseRepsPrompt';
 import { useChildSession } from '@/contexts/ChildSessionContext';
+import { usePlaylistQueue } from '@/hooks/usePlaylistQueue';
+import { useExerciseAudio } from '@/hooks/useExerciseAudio';
+import { useExerciseTimer } from '@/hooks/useExerciseTimer';
 import { supabase } from '@/lib/supabase';
-import type { LibraryItemWithExercise } from '@/lib/library';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+interface ResolvedExercise {
+  exerciseId: string;
+  animationId: string;
+  enableAudio: boolean;
+  enableAnimation: boolean;
+  audioUrl: string | null;
+  title: string;
+  description: string | null;
+  durationSeconds: number | null;
+  targetReps: number | null;
+}
 
 export default function ExercisePlayerScreen() {
-  const params = useLocalSearchParams();
+  const params = useLocalSearchParams<{
+    libraryItemId?: string;
+    exerciseId?: string;
+    planId?: string;
+  }>();
   const router = useRouter();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { child, refreshChild } = useChildSession();
 
-  const [libraryItem, setLibraryItem] = useState<LibraryItemWithExercise | null>(null);
+  const locale = (i18n.language === 'he' ? 'he' : 'en') as 'en' | 'he';
+  const isPlaylistMode = !!params.planId;
+
+  const [resolved, setResolved] = useState<ResolvedExercise | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [audioReady, setAudioReady] = useState(false);
-  const [animationReady, setAnimationReady] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasCompleted, setHasCompleted] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
-  const [pointsEarned, setPointsEarned] = useState(0);
+  const [totalPointsEarned, setTotalPointsEarned] = useState(0);
   const [loggingCompletion, setLoggingCompletion] = useState(false);
 
-  const soundRef = useRef<Audio.Sound | null>(null);
-  const animationTriggerRef = useRef<boolean>(false);
+  const animationTriggerRef = useRef(false);
+  const [animKey, setAnimKey] = useState(0);
 
-  useEffect(() => {
-    loadExercise();
+  const playlist = usePlaylistQueue(params.planId);
 
-    return () => {
-      cleanupAudio();
-    };
-  }, []);
+  const handleExerciseFinished = useCallback(async () => {
+    if (!resolved || !child || loggingCompletion) return;
 
-  const cleanupAudio = async () => {
-    if (soundRef.current) {
-      try {
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
-      } catch (err) {
-        console.error('Error cleaning up audio:', err);
-      }
-    }
-  };
-
-  const loadExercise = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const libraryItemId = params.libraryItemId as string | undefined;
-      const exerciseId = params.exerciseId as string | undefined;
-
-      if (!libraryItemId && !exerciseId) {
-        setError('No exercise specified');
-        return;
-      }
-
-      let item: LibraryItemWithExercise | null = null;
-
-      if (libraryItemId) {
-        item = await getLibraryItemById(libraryItemId);
-      } else if (exerciseId) {
-        const { data, error: fetchError } = await supabase
-          .from('exercises')
-          .select('*')
-          .eq('id', exerciseId)
-          .maybeSingle();
-
-        if (fetchError) throw fetchError;
-
-        if (data) {
-          item = {
-            id: data.id,
-            exercise_id: data.id,
-            category_name: '',
-            category_color: '#4A90E2',
-            enable_audio: !!(data.audio_path_en || data.audio_path_he),
-            enable_animation: true,
-            sort_order: 0,
-            created_at: data.created_at,
-            updated_at: data.updated_at,
-            exercise: {
-              id: data.id,
-              animation_id: data.animation_id,
-              icon_id: data.icon_id,
-              audio_path_en: data.audio_path_en,
-              audio_path_he: data.audio_path_he,
-              title_en: data.title_en,
-              title_he: data.title_he,
-              description_en: data.description_en,
-              description_he: data.description_he,
-              status: data.status,
-            },
-          } as LibraryItemWithExercise;
-        }
-      }
-
-      if (!item) {
-        setError('Exercise not found');
-        return;
-      }
-
-      setLibraryItem(item);
-
-      if (item.enable_audio) {
-        await loadAudio(item);
-      } else {
-        setAudioReady(true);
-      }
-    } catch (err) {
-      console.error('Failed to load exercise:', err);
-      setError('Failed to load exercise');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadAudio = async (item: LibraryItemWithExercise) => {
-    try {
-      const locale = i18n.language === 'he' ? 'he' : 'en';
-      const localizedContent = getLocalizedLibraryItem(item, locale);
-
-      if (!localizedContent.audioUrl) {
-        setAudioReady(true);
-        return;
-      }
-
-      await Audio.setAudioModeAsync({
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: false,
-        shouldDuckAndroid: true,
-      });
-
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: localizedContent.audioUrl },
-        { shouldPlay: false },
-        onAudioStatusUpdate
-      );
-
-      soundRef.current = sound;
-
-      await sound.getStatusAsync().then((status) => {
-        if (status.isLoaded) {
-          setAudioReady(true);
-        }
-      });
-    } catch (err) {
-      console.error('Failed to load audio:', err);
-      setAudioReady(true);
-    }
-  };
-
-  const onAudioStatusUpdate = (status: any) => {
-    if (status.isLoaded) {
-      if (!audioReady) {
-        setAudioReady(true);
-      }
-
-      if (status.didJustFinish && !status.isLooping) {
-        handlePlaybackComplete();
-      }
-    }
-  };
-
-  const handlePlaybackComplete = async () => {
     setIsPlaying(false);
-    setHasCompleted(true);
     animationTriggerRef.current = false;
-
-    if (child && libraryItem) {
-      await logCompletion();
-    }
-  };
-
-  const logCompletion = async () => {
-    if (!child || !libraryItem || loggingCompletion) return;
 
     try {
       setLoggingCompletion(true);
-
-      const { data, error: rpcError } = await supabase.rpc('log_exercise_completion', {
+      const { data } = await supabase.rpc('log_exercise_completion', {
         p_child_id: child.id,
-        p_exercise_id: libraryItem.exercise.id,
+        p_exercise_id: resolved.exerciseId,
       });
-
-      if (rpcError) {
-        console.error('RPC error:', rpcError);
-        setPointsEarned(5);
-      } else if (data && data.success) {
-        setPointsEarned(data.points_earned);
-      } else {
-        setPointsEarned(5);
-      }
-
-      setShowModal(true);
-    } catch (err) {
-      console.error('Failed to log completion:', err);
-      setPointsEarned(5);
-      setShowModal(true);
+      const pts = data?.success ? data.points_earned : 5;
+      setTotalPointsEarned((prev) => prev + pts);
+    } catch (_) {
+      setTotalPointsEarned((prev) => prev + 5);
     } finally {
       setLoggingCompletion(false);
     }
-  };
 
-  const handleModalDismiss = () => {
-    setShowModal(false);
-    refreshChild();
-    router.back();
-  };
-
-  const handlePlay = async () => {
-    if (!libraryItem) return;
-
-    try {
-      setIsPlaying(true);
-      setHasCompleted(false);
-
-      animationTriggerRef.current = true;
-
-      if (libraryItem.enable_audio && soundRef.current) {
-        await soundRef.current.setPositionAsync(0);
-        await soundRef.current.playAsync();
-      } else {
-        setTimeout(() => {
-          handlePlaybackComplete();
-        }, 10000);
-      }
-    } catch (err) {
-      console.error('Failed to play:', err);
-      setIsPlaying(false);
-      setError('Failed to play exercise');
+    if (isPlaylistMode && !playlist.isLastExercise) {
+      setTransitioning(true);
+      setTimeout(() => {
+        playlist.advanceToNext();
+        setTransitioning(false);
+      }, 600);
+    } else {
+      setHasCompleted(true);
+      setShowModal(true);
     }
-  };
+  }, [resolved, child, loggingCompletion, isPlaylistMode, playlist.isLastExercise]);
 
-  const handleReplay = async () => {
+  const audio = useExerciseAudio(
+    resolved?.audioUrl ?? null,
+    resolved?.enableAudio ?? false,
+    useCallback(() => {
+      if (!isPlaylistMode || (!resolved?.durationSeconds && !resolved?.targetReps)) {
+        handleExerciseFinished();
+      }
+    }, [isPlaylistMode, resolved?.durationSeconds, resolved?.targetReps, handleExerciseFinished])
+  );
+
+  const timer = useExerciseTimer(
+    resolved?.durationSeconds ?? 0,
+    useCallback(() => {
+      handleExerciseFinished();
+    }, [handleExerciseFinished])
+  );
+
+  const resolveFromPlaylist = useCallback(() => {
+    const item = playlist.currentItem;
+    if (!item) return;
+
+    const localized = getLocalizedExercise(item.exercise, locale);
+    const hasAudio = !!(item.exercise.audio_path_en || item.exercise.audio_path_he);
+
+    setResolved({
+      exerciseId: item.exerciseId,
+      animationId: item.exercise.animation_id,
+      enableAudio: hasAudio,
+      enableAnimation: true,
+      audioUrl: localized.audioUrl,
+      title: localized.title,
+      description: localized.description,
+      durationSeconds: item.durationSeconds,
+      targetReps: item.targetReps,
+    });
+    setIsPlaying(false);
+    setHasCompleted(false);
+    animationTriggerRef.current = false;
+    setAnimKey((k) => k + 1);
+    setLoading(false);
+
+    if (item.durationSeconds && item.durationSeconds > 0) {
+      timer.reset(item.durationSeconds);
+    }
+  }, [playlist.currentItem, locale]);
+
+  useEffect(() => {
+    if (!isPlaylistMode) return;
+    if (playlist.loading) {
+      setLoading(true);
+      return;
+    }
+    if (playlist.error) {
+      setError(playlist.error);
+      setLoading(false);
+      return;
+    }
+    if (playlist.currentItem) {
+      resolveFromPlaylist();
+    }
+  }, [isPlaylistMode, playlist.loading, playlist.error, playlist.currentIndex, playlist.currentItem]);
+
+  useEffect(() => {
+    if (isPlaylistMode) return;
+
+    const loadSingle = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const libraryItemId = params.libraryItemId;
+        const exerciseId = params.exerciseId;
+
+        if (!libraryItemId && !exerciseId) {
+          setError('No exercise specified');
+          return;
+        }
+
+        let exercise: ExerciseData | null = null;
+        let enableAudio = false;
+        let enableAnimation = true;
+
+        if (libraryItemId) {
+          const item = await getLibraryItemById(libraryItemId);
+          if (!item) { setError('Exercise not found'); return; }
+          const loc = getLocalizedLibraryItem(item, locale);
+          setResolved({
+            exerciseId: item.exercise.id,
+            animationId: item.exercise.animation_id,
+            enableAudio: item.enable_audio,
+            enableAnimation: item.enable_animation,
+            audioUrl: loc.audioUrl,
+            title: loc.title,
+            description: loc.description,
+            durationSeconds: null,
+            targetReps: null,
+          });
+          return;
+        }
+
+        if (exerciseId) {
+          const { data, error: fetchError } = await supabase
+            .from('exercises')
+            .select('*')
+            .eq('id', exerciseId)
+            .maybeSingle();
+
+          if (fetchError) throw fetchError;
+          if (!data) { setError('Exercise not found'); return; }
+
+          exercise = data as ExerciseData;
+          enableAudio = !!(data.audio_path_en || data.audio_path_he);
+          const loc = getLocalizedExercise(exercise, locale);
+
+          setResolved({
+            exerciseId: exercise.id,
+            animationId: exercise.animation_id,
+            enableAudio,
+            enableAnimation: true,
+            audioUrl: loc.audioUrl,
+            title: loc.title,
+            description: loc.description,
+            durationSeconds: null,
+            targetReps: null,
+          });
+        }
+      } catch (_) {
+        setError('Failed to load exercise');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSingle();
+  }, [isPlaylistMode]);
+
+  const handlePlay = useCallback(async () => {
+    if (!resolved) return;
+
+    setIsPlaying(true);
+    setHasCompleted(false);
+    animationTriggerRef.current = true;
+    setAnimKey((k) => k + 1);
+
+    if (resolved.enableAudio) {
+      await audio.playAudio();
+    }
+
+    if (isPlaylistMode && resolved.durationSeconds && resolved.durationSeconds > 0) {
+      timer.start();
+    }
+
+    if (!isPlaylistMode && !resolved.enableAudio) {
+      setTimeout(() => handleExerciseFinished(), 10000);
+    }
+  }, [resolved, audio, timer, isPlaylistMode, handleExerciseFinished]);
+
+  const handleReplay = useCallback(async () => {
     setHasCompleted(false);
     setIsPlaying(false);
     animationTriggerRef.current = false;
-
-    if (soundRef.current) {
-      await soundRef.current.setPositionAsync(0);
+    await audio.resetAudio();
+    if (resolved?.durationSeconds && resolved.durationSeconds > 0) {
+      timer.reset(resolved.durationSeconds);
     }
-  };
+  }, [audio, timer, resolved]);
 
-  const handleBack = () => {
+  const handleModalDismiss = useCallback(() => {
+    setShowModal(false);
+    refreshChild();
     router.back();
-  };
+  }, [refreshChild, router]);
 
-  const isReadyToPlay = audioReady && animationReady && !loading && !error;
+  const isReadyToPlay = audio.audioReady && !loading && !error && !!resolved;
+
+  const isDurationBased = isPlaylistMode && (resolved?.durationSeconds ?? 0) > 0;
+  const isRepsBased = isPlaylistMode && !isDurationBased && (resolved?.targetReps ?? 0) > 0;
 
   if (loading) {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#10B981" />
-          <Text style={styles.loadingText}>Loading exercise...</Text>
-          <Text style={styles.loadingSubtext}>Preparing audio and animation...</Text>
+          <Text style={styles.loadingText}>
+            {t('common.loading', { defaultValue: 'Loading...' })}
+          </Text>
         </View>
       </View>
     );
   }
 
-  if (error || !libraryItem) {
+  if (error || !resolved) {
     return (
       <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error || 'Exercise not available'}</Text>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <Text style={styles.backButtonText}>Go Back</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Text style={styles.backButtonText}>
+              {t('common.ok', { defaultValue: 'OK' })}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
     );
   }
 
-  const locale = i18n.language === 'he' ? 'he' : 'en';
-  const localizedContent = getLocalizedLibraryItem(libraryItem, locale);
+  if (transitioning) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <SkipForward size={40} color="#10B981" />
+          <Text style={styles.loadingText}>
+            {t('exercise_player.loading_next', { defaultValue: 'Next exercise...' })}
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backIconButton}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backIconButton}>
           <ArrowLeft size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.title} numberOfLines={1}>
-          {localizedContent.title}
+          {resolved.title}
         </Text>
         <View style={styles.headerSpacer} />
       </View>
 
+      {isPlaylistMode && (
+        <PlaylistProgressBar
+          currentIndex={playlist.currentIndex}
+          totalCount={playlist.totalExercises}
+          exerciseTitle={resolved.title}
+        />
+      )}
+
       <View style={styles.animationContainer}>
-        {libraryItem.enable_animation && animationTriggerRef.current ? (
-          <ExerciseAnimationRenderer animationId={libraryItem.exercise.animation_id} />
+        {resolved.enableAnimation && animationTriggerRef.current ? (
+          <ExerciseAnimationRenderer
+            key={animKey}
+            animationId={resolved.animationId}
+          />
         ) : (
           <View style={styles.placeholderAnimation}>
             <Text style={styles.placeholderIcon}>&#129496;</Text>
-            <Text style={styles.placeholderText}>Ready to start</Text>
+            <Text style={styles.placeholderText}>
+              {t('exercise_player.ready', { defaultValue: 'Ready to start' })}
+            </Text>
           </View>
         )}
       </View>
 
       <View style={styles.controls}>
-        {localizedContent.description && (
-          <Text style={styles.description}>{localizedContent.description}</Text>
+        {resolved.description && !isPlaying && (
+          <Text style={styles.description}>{resolved.description}</Text>
         )}
 
-        {!isReadyToPlay && (
+        {isDurationBased && isPlaying && (
+          <ExerciseTimerDisplay
+            secondsRemaining={timer.secondsRemaining}
+            totalSeconds={resolved.durationSeconds!}
+            isRunning={timer.isRunning}
+          />
+        )}
+
+        {isRepsBased && isPlaying && (
+          <ExerciseRepsPrompt
+            targetReps={resolved.targetReps!}
+            onDone={handleExerciseFinished}
+            disabled={loggingCompletion}
+          />
+        )}
+
+        {loggingCompletion && (
           <View style={styles.bufferingContainer}>
             <ActivityIndicator size="small" color="#10B981" />
-            <Text style={styles.bufferingText}>Preparing exercise...</Text>
+            <Text style={styles.bufferingText}>
+              {t('exercise_player.saving', { defaultValue: 'Saving progress...' })}
+            </Text>
           </View>
         )}
 
-        {loggingCompletion ? (
+        {!isPlaying && !hasCompleted && !loggingCompletion && (
+          <TouchableOpacity
+            style={[styles.playButton, !isReadyToPlay && styles.playButtonDisabled]}
+            onPress={handlePlay}
+            disabled={!isReadyToPlay}
+          >
+            <Play size={24} color="#FFFFFF" />
+            <Text style={styles.playButtonText}>
+              {isPlaylistMode && playlist.currentIndex === 0
+                ? t('exercise_player.start_workout', { defaultValue: 'Start Workout' })
+                : t('exercise_player.start', { defaultValue: 'Start Exercise' })}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {isPlaying && !isDurationBased && !isRepsBased && !loggingCompletion && (
           <View style={styles.bufferingContainer}>
             <ActivityIndicator size="small" color="#10B981" />
-            <Text style={styles.bufferingText}>Saving progress...</Text>
+            <Text style={styles.bufferingText}>
+              {t('exercise_player.playing', { defaultValue: 'Playing...' })}
+            </Text>
           </View>
-        ) : hasCompleted && !showModal ? (
+        )}
+
+        {!isPlaylistMode && hasCompleted && !showModal && !loggingCompletion && (
           <TouchableOpacity
             style={[styles.playButton, styles.replayButton]}
             onPress={handleReplay}
           >
             <RotateCcw size={24} color="#FFFFFF" />
-            <Text style={styles.playButtonText}>Play Again</Text>
-          </TouchableOpacity>
-        ) : !hasCompleted ? (
-          <TouchableOpacity
-            style={[
-              styles.playButton,
-              (!isReadyToPlay || isPlaying) && styles.playButtonDisabled,
-            ]}
-            onPress={handlePlay}
-            disabled={!isReadyToPlay || isPlaying}
-          >
-            <Play size={24} color="#FFFFFF" />
             <Text style={styles.playButtonText}>
-              {isPlaying ? 'Playing...' : 'Start Exercise'}
+              {t('exercise_player.play_again', { defaultValue: 'Play Again' })}
             </Text>
           </TouchableOpacity>
-        ) : null}
+        )}
 
         <View style={styles.metaInfo}>
-          {libraryItem.enable_audio && (
+          {resolved.enableAudio && (
             <View style={styles.metaItem}>
               <Text style={styles.metaIcon}>&#128266;</Text>
-              <Text style={styles.metaText}>Audio Guided</Text>
+              <Text style={styles.metaText}>Audio</Text>
             </View>
           )}
-          {libraryItem.enable_animation && (
+          {resolved.enableAnimation && (
             <View style={styles.metaItem}>
               <Text style={styles.metaIcon}>&#127916;</Text>
               <Text style={styles.metaText}>Animated</Text>
@@ -377,8 +439,10 @@ export default function ExercisePlayerScreen() {
 
       <CompletionModal
         visible={showModal}
-        pointsEarned={pointsEarned}
+        pointsEarned={totalPointsEarned}
         onDismiss={handleModalDismiss}
+        isWorkout={isPlaylistMode}
+        exerciseCount={isPlaylistMode ? playlist.totalExercises : undefined}
       />
     </View>
   );
@@ -499,17 +563,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 16,
   },
   loadingText: {
-    marginTop: 16,
     fontSize: 18,
     fontWeight: '600',
     color: '#111827',
-  },
-  loadingSubtext: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#6B7280',
   },
   errorContainer: {
     flex: 1,

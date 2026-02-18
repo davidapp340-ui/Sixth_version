@@ -355,11 +355,11 @@ export default function PathScreen() {
           setSelectedPlan(null);
         }}
         plan={selectedPlan}
-        onStart={(firstExerciseId: string) => {
+        onStart={(planId: string) => {
           setIsPreviewVisible(false);
           router.push({
             pathname: '/exercise-player',
-            params: { exerciseId: firstExerciseId },
+            params: { planId },
           });
           setSelectedPlan(null);
         }}

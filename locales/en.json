@@ -478,9 +478,23 @@
       "reminder_body": "Hey champ! Time for your eye exercises!"
     }
   },
+  "exercise_player": {
+    "progress": "Exercise {{current}} of {{total}}",
+    "loading_next": "Next exercise...",
+    "do_reps": "Do {{count}} Reps",
+    "im_done": "I'm Done",
+    "saving": "Saving progress...",
+    "playing": "Playing...",
+    "ready": "Ready to start",
+    "start": "Start Exercise",
+    "start_workout": "Start Workout",
+    "play_again": "Play Again"
+  },
   "completion_modal": {
     "title": "Exercise Complete!",
+    "workout_title": "Workout Complete!",
     "subtitle": "Great job! Keep it up!",
+    "workout_subtitle": "You completed all {{count}} exercises!",
     "points_label": "Coins",
     "button": "Awesome!"
   },

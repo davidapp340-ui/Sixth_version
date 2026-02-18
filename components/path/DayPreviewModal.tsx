@@ -31,7 +31,7 @@ interface DayPreviewModalProps {
   visible: boolean;
   onClose: () => void;
   plan: DailyPlan | null;
-  onStart: (firstExerciseId: string) => void;
+  onStart: (planId: string) => void;
 }
 
 export default function DayPreviewModal({
@@ -235,8 +235,8 @@ export default function DayPreviewModal({
             <TouchableOpacity
               style={[styles.startButton, (loading || exercises.length === 0) && styles.startButtonDisabled]}
               onPress={() => {
-                if (exercises.length > 0) {
-                  onStart(exercises[0].exercise_id);
+                if (exercises.length > 0 && plan) {
+                  onStart(plan.id);
                 }
               }}
               disabled={loading || exercises.length === 0}

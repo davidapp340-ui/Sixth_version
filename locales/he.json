@@ -478,9 +478,23 @@
       "reminder_body": "היי אלוף! הגיע הזמן לתרגילי עיניים!"
     }
   },
+  "exercise_player": {
+    "progress": "תרגיל {{current}} מתוך {{total}}",
+    "loading_next": "...התרגיל הבא",
+    "do_reps": "בצע {{count}} חזרות",
+    "im_done": "סיימתי",
+    "saving": "...שומר התקדמות",
+    "playing": "...מנגן",
+    "ready": "מוכן להתחיל",
+    "start": "התחל תרגיל",
+    "start_workout": "התחל אימון",
+    "play_again": "נגן שוב"
+  },
   "completion_modal": {
     "title": "!התרגיל הושלם",
+    "workout_title": "!האימון הושלם",
     "subtitle": "!כל הכבוד! המשיכו כך",
+    "workout_subtitle": "!השלמת את כל {{count}} התרגילים",
     "points_label": "מטבעות",
     "button": "!מעולה"
   },
