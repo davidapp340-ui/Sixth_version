@@ -10,12 +10,13 @@ import {
   Switch,
   Platform,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { X, Calendar } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
-import { fetchLegalDocument } from '@/lib/legal';
+import { PRIVACY_POLICY_URL } from '@/lib/legal';
 
 interface AddChildWizardProps {
   visible: boolean;
@@ -49,10 +50,6 @@ export default function AddChildWizard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [policyModalVisible, setPolicyModalVisible] = useState(false);
-  const [policyLoading, setPolicyLoading] = useState(false);
-  const [policyContent, setPolicyContent] = useState<{ title: string; content: string } | null>(null);
-  const [policyError, setPolicyError] = useState('');
 
   const [step1Data, setStep1Data] = useState<Step1Data>({
     name: '',
@@ -164,23 +161,6 @@ export default function AddChildWizard({
     }
 
     return true;
-  };
-
-  const handleViewPolicy = async () => {
-    setPolicyModalVisible(true);
-    setPolicyLoading(true);
-    setPolicyError('');
-    setPolicyContent(null);
-
-    const document = await fetchLegalDocument('privacy_policy');
-
-    if (!document) {
-      setPolicyError(t('parent_home.add_child_wizard.policy_modal.error'));
-    } else {
-      setPolicyContent(document);
-    }
-
-    setPolicyLoading(false);
   };
 
   const handleCreate = async () => {
@@ -474,7 +454,7 @@ export default function AddChildWizard({
           <Text style={styles.consentText}>
             {t('parent_home.add_child_wizard.step2.consent_text')}{' '}
           </Text>
-          <TouchableOpacity onPress={handleViewPolicy}>
+          <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}>
             <Text style={styles.linkText}>
               {t('parent_home.add_child_wizard.policy_modal.view_policy')}
             </Text>
@@ -528,48 +508,6 @@ export default function AddChildWizard({
         </View>
       </View>
 
-      <Modal
-        visible={policyModalVisible}
-        animationType="slide"
-        transparent={false}
-        presentationStyle="pageSheet"
-        onRequestClose={() => setPolicyModalVisible(false)}
-      >
-        <View style={styles.policyFullScreenContainer}>
-          <View style={styles.policyFullScreenHeader}>
-            <Text style={styles.policyFullScreenTitle}>
-              {policyContent?.title || t('parent_home.add_child_wizard.policy_modal.view_policy')}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setPolicyModalVisible(false)}
-              style={styles.policyCloseIconButton}
-            >
-              <X size={28} color="#374151" strokeWidth={2.5} />
-            </TouchableOpacity>
-          </View>
-
-          {policyLoading ? (
-            <View style={styles.policyLoadingContainer}>
-              <ActivityIndicator size="large" color="#6366F1" />
-              <Text style={styles.policyLoadingText}>
-                {t('parent_home.add_child_wizard.policy_modal.loading')}
-              </Text>
-            </View>
-          ) : policyError ? (
-            <View style={styles.policyErrorContainer}>
-              <Text style={styles.policyErrorText}>{policyError}</Text>
-            </View>
-          ) : (
-            <ScrollView
-              style={styles.policyFullScreenScrollView}
-              contentContainerStyle={styles.policyFullScreenScrollContent}
-              showsVerticalScrollIndicator={true}
-            >
-              <Text style={styles.policyFullScreenText}>{policyContent?.content}</Text>
-            </ScrollView>
-          )}
-        </View>
-      </Modal>
     </Modal>
   );
 }
@@ -798,66 +736,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
-  },
-  policyFullScreenContainer: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  policyFullScreenHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  policyFullScreenTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-    flex: 1,
-    paddingRight: 16,
-  },
-  policyCloseIconButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#F3F4F6',
-  },
-  policyFullScreenScrollView: {
-    flex: 1,
-  },
-  policyFullScreenScrollContent: {
-    padding: 24,
-    paddingBottom: 40,
-  },
-  policyFullScreenText: {
-    fontSize: 16,
-    lineHeight: 26,
-    color: '#374151',
-  },
-  policyLoadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  policyLoadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  policyErrorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  policyErrorText: {
-    fontSize: 16,
-    color: '#EF4444',
-    textAlign: 'center',
   },
 });

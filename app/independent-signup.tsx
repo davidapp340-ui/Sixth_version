@@ -10,15 +10,15 @@ import {
   Platform,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Modal,
+  Linking,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Calendar, X } from 'lucide-react-native';
+import { ArrowLeft, Calendar } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChildSession } from '@/contexts/ChildSessionContext';
-import { fetchLegalDocument } from '@/lib/legal';
+import { TERMS_OF_SERVICE_URL, PRIVACY_POLICY_URL } from '@/lib/legal';
 
 interface Step1Data {
   email: string;
@@ -58,10 +58,6 @@ export default function IndependentSignupScreen() {
     }
   }, [signupComplete, isIndependent, child]);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [policyModalVisible, setPolicyModalVisible] = useState(false);
-  const [policyLoading, setPolicyLoading] = useState(false);
-  const [policyContent, setPolicyContent] = useState<{ title: string; content: string } | null>(null);
-  const [policyError, setPolicyError] = useState('');
 
   const [step1Data, setStep1Data] = useState<Step1Data>({
     email: '',
@@ -182,21 +178,6 @@ export default function IndependentSignupScreen() {
       month: 'long',
       day: 'numeric',
     });
-  };
-
-  const handleViewPolicy = async (type: string) => {
-    setPolicyModalVisible(true);
-    setPolicyLoading(true);
-    setPolicyError('');
-    setPolicyContent(null);
-
-    const document = await fetchLegalDocument(type);
-    if (!document) {
-      setPolicyError(t('independent_signup.policy_modal.error'));
-    } else {
-      setPolicyContent(document);
-    }
-    setPolicyLoading(false);
   };
 
   const handleSubmit = async () => {
@@ -534,11 +515,11 @@ export default function IndependentSignupScreen() {
         </TouchableOpacity>
         <View style={styles.consentTextContainer}>
           <Text style={styles.consentText}>{t('independent_signup.step3.consent_text')} </Text>
-          <TouchableOpacity onPress={() => handleViewPolicy('terms_of_use')}>
+          <TouchableOpacity onPress={() => Linking.openURL(TERMS_OF_SERVICE_URL)}>
             <Text style={styles.linkText}>{t('independent_signup.step3.terms_link')}</Text>
           </TouchableOpacity>
           <Text style={styles.consentText}> {t('independent_signup.step3.and')} </Text>
-          <TouchableOpacity onPress={() => handleViewPolicy('privacy_policy')}>
+          <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}>
             <Text style={styles.linkText}>{t('independent_signup.step3.privacy_link')}</Text>
           </TouchableOpacity>
         </View>
@@ -595,45 +576,6 @@ export default function IndependentSignupScreen() {
         {currentStep === 3 && renderStep3()}
       </View>
 
-      <Modal
-        visible={policyModalVisible}
-        animationType="slide"
-        transparent={false}
-        presentationStyle="pageSheet"
-        onRequestClose={() => setPolicyModalVisible(false)}
-      >
-        <View style={styles.policyContainer}>
-          <View style={styles.policyHeader}>
-            <Text style={styles.policyTitle}>
-              {policyContent?.title || t('independent_signup.policy_modal.view_policy')}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setPolicyModalVisible(false)}
-              style={styles.policyCloseButton}
-            >
-              <X size={28} color="#374151" strokeWidth={2.5} />
-            </TouchableOpacity>
-          </View>
-          {policyLoading ? (
-            <View style={styles.policyCenterContainer}>
-              <ActivityIndicator size="large" color="#0369A1" />
-              <Text style={styles.policyLoadingText}>{t('independent_signup.policy_modal.loading')}</Text>
-            </View>
-          ) : policyError ? (
-            <View style={styles.policyCenterContainer}>
-              <Text style={styles.policyErrorText}>{policyError}</Text>
-            </View>
-          ) : (
-            <ScrollView
-              style={styles.policyScrollView}
-              contentContainerStyle={styles.policyScrollContent}
-              showsVerticalScrollIndicator={true}
-            >
-              <Text style={styles.policyText}>{policyContent?.content}</Text>
-            </ScrollView>
-          )}
-        </View>
-      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -874,61 +816,6 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     backgroundColor: '#D1D5DB',
-  },
-  policyContainer: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  policyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  policyTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-    flex: 1,
-    paddingRight: 16,
-  },
-  policyCloseButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#F3F4F6',
-  },
-  policyCenterContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  policyLoadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  policyErrorText: {
-    fontSize: 16,
-    color: '#EF4444',
-    textAlign: 'center',
-  },
-  policyScrollView: {
-    flex: 1,
-  },
-  policyScrollContent: {
-    padding: 24,
-    paddingBottom: 40,
-  },
-  policyText: {
-    fontSize: 16,
-    lineHeight: 26,
-    color: '#374151',
   },
   toggleButton: {
     marginTop: 24,
