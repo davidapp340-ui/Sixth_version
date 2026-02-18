@@ -5,12 +5,16 @@ import type { ParamListBase, TabNavigationState } from '@react-navigation/native
 
 const { Navigator } = createMaterialTopTabNavigator();
 
+const BottomNavigator = (props: React.ComponentProps<typeof Navigator>) => (
+  <Navigator {...props} tabBarPosition="bottom" />
+);
+
 export const SwipableTabs = withLayoutContext<
   MaterialTopTabNavigationOptions,
-  typeof Navigator,
+  typeof BottomNavigator,
   TabNavigationState<ParamListBase>,
   MaterialTopTabNavigationEventMap
->(Navigator);
+>(BottomNavigator);
 
 type MaterialTopTabNavigationEventMap = {
   tabPress: {

@@ -23,7 +23,6 @@ export default function IndependentTabsLayout() {
   return (
     <SwipableTabs
       screenOptions={{
-        tabBarPosition: 'bottom',
         tabBarScrollEnabled: false,
         swipeEnabled: true,
         lazy: true,
