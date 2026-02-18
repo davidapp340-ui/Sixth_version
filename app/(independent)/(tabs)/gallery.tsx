@@ -1,1 +1,1 @@
-export { default } from '../../(child)/library';
+export { default } from '../../(child)/(tabs)/library';

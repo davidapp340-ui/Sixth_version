@@ -1,97 +1,63 @@
-import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
-import { Home, Lightbulb, Settings } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEffect } from 'react';
+import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet } from 'react-native';
+import { Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ParentLayout() {
-  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  const { profile, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !profile) {
+      router.replace('/role-selection');
+    }
+  }, [loading, profile, router]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>{t('common.loading')}</Text>
+      </View>
+    );
+  }
+
+  if (!profile) {
+    return null;
+  }
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#4F46E5',
-        tabBarInactiveTintColor: '#9CA3AF',
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          paddingTop: 8,
-          paddingBottom: Platform.select({
-            ios: Math.max(insets.bottom, 8),
-            android: 12,
-            default: 8,
-          }),
-          height: Platform.select({
-            ios: 75 + insets.bottom,
-            android: 70,
-            default: 70,
-          }),
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '600',
-          marginTop: 2,
-          marginBottom: Platform.select({
-            ios: 0,
-            android: 4,
-            default: 2,
-          }),
-        },
-        tabBarItemStyle: {
-          paddingVertical: 6,
-          paddingHorizontal: 2,
-        },
-        tabBarIconStyle: {
-          marginTop: Platform.select({
-            ios: 2,
-            android: 0,
-            default: 0,
-          }),
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ size, color }) => (
-            <Home size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="science"
-        options={{
-          title: 'Science',
-          tabBarIcon: ({ size, color }) => (
-            <Lightbulb size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ size, color }) => (
-            <Settings size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen
         name="article/[id]"
         options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
+          presentation: 'card',
+          animation: 'slide_from_right',
         }}
       />
-      <Tabs.Screen
+      <Stack.Screen
         name="child/[id]"
         options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
+          presentation: 'card',
+          animation: 'slide_from_right',
         }}
       />
-    </Tabs>
+    </Stack>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#6B7280',
+  },
+});

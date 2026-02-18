@@ -40,7 +40,7 @@ export default function ScienceScreen() {
   };
 
   const handleArticlePress = (articleId: string) => {
-    router.push(`/article/${articleId}`);
+    router.push(`/(parent)/article/${articleId}`);
   };
 
   const getLocalizedField = (article: Article, field: 'title' | 'subtitle' | 'category') => {
