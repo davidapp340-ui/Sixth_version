@@ -412,6 +412,36 @@ export interface Database {
           }
         ]
       }
+      faq_items: {
+        Row: {
+          id: string
+          question_he: string
+          question_en: string
+          answer_he: string
+          answer_en: string
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          question_he: string
+          question_en: string
+          answer_he: string
+          answer_en: string
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          question_he?: string
+          question_en?: string
+          answer_he?: string
+          answer_en?: string
+          sort_order?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
       legal_documents: {
         Row: {
           id: string

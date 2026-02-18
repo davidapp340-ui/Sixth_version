@@ -38,6 +38,13 @@ export default function IndependentLayout() {
           animation: 'slide_from_right',
         }}
       />
+      <Stack.Screen
+        name="faq"
+        options={{
+          presentation: 'card',
+          animation: 'slide_from_right',
+        }}
+      />
     </Stack>
   );
 }

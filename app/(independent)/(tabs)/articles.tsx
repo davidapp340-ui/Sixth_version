@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { HelpCircle, ChevronRight } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
 
@@ -106,6 +107,25 @@ export default function IndependentArticlesScreen() {
       </View>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.articlesContainer}>
+          <TouchableOpacity
+            style={styles.faqCard}
+            onPress={() => router.push('/(independent)/faq')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.faqIconContainer}>
+              <HelpCircle size={28} color="#0369A1" />
+            </View>
+            <View style={styles.faqTextContainer}>
+              <Text style={styles.faqTitle}>
+                {t('independent.articles.faq_card_title')}
+              </Text>
+              <Text style={styles.faqSubtitle}>
+                {t('independent.articles.faq_card_subtitle')}
+              </Text>
+            </View>
+            <ChevronRight size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+
           {articles.map((article) => (
             <TouchableOpacity
               key={article.id}
@@ -196,6 +216,38 @@ const styles = StyleSheet.create({
   articlesContainer: {
     padding: 20,
     gap: 20,
+  },
+  faqCard: {
+    backgroundColor: '#EFF6FF',
+    borderRadius: 16,
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  faqIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#DBEAFE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  faqTextContainer: {
+    flex: 1,
+  },
+  faqTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0C4A6E',
+    marginBottom: 2,
+  },
+  faqSubtitle: {
+    fontSize: 13,
+    color: '#0369A1',
+    lineHeight: 18,
   },
   articleCard: {
     backgroundColor: '#FFFFFF',

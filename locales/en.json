@@ -404,7 +404,15 @@
       "title": "Articles & Tips",
       "loading": "Loading articles...",
       "empty": "No articles available yet",
-      "error": "Failed to load articles. Please try again."
+      "error": "Failed to load articles. Please try again.",
+      "faq_card_title": "Common Questions",
+      "faq_card_subtitle": "Find answers to frequently asked questions"
+    },
+    "faq": {
+      "title": "Common Questions",
+      "loading": "Loading questions...",
+      "empty": "No questions available yet",
+      "error": "Failed to load questions. Please try again."
     },
     "settings": {
       "title": "Settings",
