@@ -430,6 +430,14 @@
       "version": "גרסה 1.0.0"
     }
   },
+  "child_profile_screen": {
+    "connect_device": "חבר מכשיר חדש",
+    "connect_device_subtitle": "צור קוד קישור עבור ילד זה",
+    "stats_title": "סקירת פעילות",
+    "stat_streak": "רצף נוכחי",
+    "stat_practice_time": "זמן אימון",
+    "stat_last_activity": "פעילות אחרונה"
+  },
   "completion_modal": {
     "title": "!התרגיל הושלם",
     "subtitle": "!כל הכבוד! המשיכו כך",

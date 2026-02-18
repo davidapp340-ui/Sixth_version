@@ -5,30 +5,25 @@ import {
   TouchableOpacity,
   StyleSheet,
   FlatList,
-  Modal,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
-import { Plus, User, Link, Copy } from 'lucide-react-native';
-import * as Clipboard from 'expo-clipboard';
+import { Plus, User, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import AddChildWizard from '@/components/AddChildWizard';
-import { useLinkingCode } from '@/hooks/useLinkingCode';
 
 type Child = Database['public']['Tables']['children']['Row'];
 
 export default function ParentHomeScreen() {
   const { profile } = useAuth();
   const { t } = useTranslation();
-  const { generateCode, loading: generatingCode } = useLinkingCode();
+  const router = useRouter();
   const [children, setChildren] = useState<Child[]>([]);
   const [loading, setLoading] = useState(true);
   const [wizardVisible, setWizardVisible] = useState(false);
-  const [codeModalVisible, setCodeModalVisible] = useState(false);
-  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -57,29 +52,12 @@ export default function ParentHomeScreen() {
     loadChildren();
   };
 
-  const handleGenerateCode = async (child: Child) => {
-    const result = await generateCode(child);
-
-    if (!result.success || !result.child) {
-      Alert.alert(t('common.error'), result.error || t('parent_home.code_generation_errors.generic_error'));
-      return;
-    }
-
-    setChildren((prevChildren) =>
-      prevChildren.map((c) => (c.id === child.id ? result.child! : c))
-    );
-
-    setSelectedChild(result.child);
-    setCodeModalVisible(true);
-  };
-
-  const copyToClipboard = async (text: string) => {
-    await Clipboard.setStringAsync(text);
-    Alert.alert(t('common.success'), t('parent_home.linking_code_modal.copy_success'));
-  };
-
   const renderChild = ({ item }: { item: Child }) => (
-    <View style={styles.childCard}>
+    <TouchableOpacity
+      style={styles.childCard}
+      onPress={() => router.push({ pathname: '/(parent)/child/[id]', params: { id: item.id } })}
+      activeOpacity={0.7}
+    >
       <View style={styles.childInfo}>
         <User size={32} color="#4F46E5" />
         <View style={styles.childDetails}>
@@ -89,21 +67,8 @@ export default function ParentHomeScreen() {
           )}
         </View>
       </View>
-      <TouchableOpacity
-        style={styles.linkButton}
-        onPress={() => handleGenerateCode(item)}
-        disabled={generatingCode}
-      >
-        {generatingCode ? (
-          <ActivityIndicator size="small" color="#4F46E5" />
-        ) : (
-          <>
-            <Link size={20} color="#4F46E5" />
-            <Text style={styles.linkButtonText}>{t('parent_home.link_button')}</Text>
-          </>
-        )}
-      </TouchableOpacity>
-    </View>
+      <ChevronRight size={22} color="#9CA3AF" />
+    </TouchableOpacity>
   );
 
   if (loading) {
@@ -157,40 +122,6 @@ export default function ParentHomeScreen() {
         familyId={profile?.family_id!}
         onSuccess={handleWizardSuccess}
       />
-
-      <Modal
-        visible={codeModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setCodeModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('parent_home.linking_code_modal.title')}</Text>
-            <Text style={styles.codeInstructions}>
-              {t('parent_home.linking_code_modal.instructions', { childName: selectedChild?.name })}
-            </Text>
-            <View style={styles.codeContainer}>
-              <Text style={styles.code}>{selectedChild?.linking_code}</Text>
-              <TouchableOpacity
-                style={styles.copyButton}
-                onPress={() => copyToClipboard(selectedChild?.linking_code!)}
-              >
-                <Copy size={20} color="#4F46E5" />
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => {
-                setCodeModalVisible(false);
-                setSelectedChild(null);
-              }}
-            >
-              <Text style={styles.modalCloseButtonText}>{t('parent_home.linking_code_modal.close_button')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -279,20 +210,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#10B981',
   },
-  linkButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: '#EEF2FF',
-  },
-  linkButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4F46E5',
-  },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
@@ -306,95 +223,5 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: 14,
     color: '#9CA3AF',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    padding: 24,
-    borderRadius: 16,
-    width: '100%',
-    maxWidth: 400,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 16,
-  },
-  modalInput: {
-    backgroundColor: '#F9FAFB',
-    padding: 16,
-    borderRadius: 12,
-    fontSize: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  modalCancelButton: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  modalCancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  modalAddButton: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    backgroundColor: '#4F46E5',
-  },
-  modalAddButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  codeInstructions: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 20,
-  },
-  codeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    marginBottom: 24,
-  },
-  code: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#4F46E5',
-    letterSpacing: 8,
-  },
-  copyButton: {
-    padding: 8,
-  },
-  modalCloseButton: {
-    padding: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    backgroundColor: '#4F46E5',
-  },
-  modalCloseButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
 });

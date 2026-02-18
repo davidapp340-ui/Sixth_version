@@ -430,6 +430,14 @@
       "version": "Version 1.0.0"
     }
   },
+  "child_profile_screen": {
+    "connect_device": "Connect New Device",
+    "connect_device_subtitle": "Generate a linking code for this child",
+    "stats_title": "Activity Overview",
+    "stat_streak": "Current Streak",
+    "stat_practice_time": "Practice Time",
+    "stat_last_activity": "Last Activity"
+  },
   "completion_modal": {
     "title": "Exercise Complete!",
     "subtitle": "Great job! Keep it up!",
