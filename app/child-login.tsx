@@ -9,10 +9,8 @@ import {
   SafeAreaView,
   StatusBar,
   Image,
-  KeyboardAvoidingView,
+  ScrollView,
   Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChildSession } from '@/contexts/ChildSessionContext';
@@ -66,73 +64,70 @@ export default function ChildLoginScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#f4f1ea" />
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoid}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.container}>
-            
-            {/* כפתור חזור מעוצב */}
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()} activeOpacity={0.8}>
-              <ArrowLeft size={28} color="#408960" />
-            </TouchableOpacity>
+        {/* כפתור חזור מעוצב */}
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()} activeOpacity={0.8}>
+          <ArrowLeft size={28} color="#408960" />
+        </TouchableOpacity>
 
-            <View style={styles.content}>
-              
-              {/* דמות מזמינה לילד */}
-              <Image 
-                source={require('@/assets/images/avatars/astronaut.png')} 
-                style={styles.avatar}
-                resizeMode="contain"
-              />
+        <View style={styles.content}>
+          
+          {/* דמות מזמינה לילד */}
+          <Image 
+            source={require('@/assets/images/avatars/astronaut.png')} 
+            style={styles.avatar}
+            resizeMode="contain"
+          />
 
-              <Text style={styles.title}>{t('child_login.title')}</Text>
-              <Text style={styles.subtitle}>{t('child_login.subtitle')}</Text>
-              <Text style={styles.instructions}>
-                {t('child_login.instructions')}
-              </Text>
+          <Text style={styles.title}>{t('child_login.title')}</Text>
+          <Text style={styles.subtitle}>{t('child_login.subtitle')}</Text>
+          <Text style={styles.instructions}>
+            {t('child_login.instructions')}
+          </Text>
 
-              {error ? (
-                <View style={styles.errorContainer}>
-                  <Text style={styles.errorText}>{error}</Text>
-                </View>
-              ) : null}
-
-              {/* שדה הזנת קוד בסגנון "קוד סודי" */}
-              <TextInput
-                style={styles.input}
-                placeholder="******"
-                placeholderTextColor="#A1D0B6"
-                value={code}
-                onChangeText={(text) => setCode(text.toUpperCase())}
-                autoCapitalize="characters"
-                maxLength={6}
-                editable={!loading}
-                keyboardType={Platform.OS === 'ios' ? 'default' : 'visible-password'}
-                autoCorrect={false}
-              />
-
-              <TouchableOpacity
-                style={[styles.connectButton, loading && styles.connectButtonDisabled]}
-                onPress={handleConnect}
-                disabled={loading}
-                activeOpacity={0.85}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#FFFFFF" size="large" />
-                ) : (
-                  <View style={styles.buttonContent}>
-                    <Text style={styles.connectButtonText}>{t('child_login.connect_button')}</Text>
-                    <Rocket size={24} color="#FFFFFF" style={styles.buttonIcon} />
-                  </View>
-                )}
-              </TouchableOpacity>
-
+          {error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
             </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+          ) : null}
+
+          {/* שדה הזנת קוד בסגנון "קוד סודי" */}
+          <TextInput
+            style={styles.input}
+            placeholder="******"
+            placeholderTextColor="#A1D0B6"
+            value={code}
+            onChangeText={(text) => setCode(text.toUpperCase())}
+            autoCapitalize="characters"
+            maxLength={6}
+            editable={!loading}
+            keyboardType="default"
+            autoCorrect={false}
+          />
+
+          <TouchableOpacity
+            style={[styles.connectButton, loading && styles.connectButtonDisabled]}
+            onPress={handleConnect}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" size="large" />
+            ) : (
+              <View style={styles.buttonContent}>
+                <Text style={styles.connectButtonText}>{t('child_login.connect_button')}</Text>
+                <Rocket size={24} color="#FFFFFF" style={styles.buttonIcon} />
+              </View>
+            )}
+          </TouchableOpacity>
+
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -140,14 +135,12 @@ export default function ChildLoginScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f4f1ea', // צבע רקע חם ומזמין
+    backgroundColor: '#f4f1ea',
   },
-  keyboardAvoid: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    padding: 24,
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
   },
   backButton: {
     width: 48,
@@ -156,7 +149,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 16, // דוחף מעט למטה מהקצה העליון
+    marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -165,23 +159,21 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   content: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     maxWidth: 400,
     alignSelf: 'center',
     width: '100%',
-    paddingBottom: 40, // מרווח מלמטה עבור המקלדת
+    // הסרנו את ה-flex: 1 ו-justifyContent: center כדי שהתוכן יעלה למעלה
   },
   avatar: {
-    width: 140,
-    height: 140,
-    marginBottom: 24,
+    width: 130, // הקטנו מעט כדי לשמור על פרופורציות
+    height: 130,
+    marginBottom: 20,
   },
   title: {
     fontSize: 40,
     fontWeight: '900',
-    color: '#408960', // צבע הילדים המקורי
+    color: '#408960',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -196,7 +188,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#777777',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 28,
     paddingHorizontal: 20,
     lineHeight: 24,
   },
@@ -218,16 +210,16 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 20,
+    paddingVertical: 18,
     paddingHorizontal: 20,
     borderRadius: 24,
-    fontSize: 36,
-    marginBottom: 32,
+    fontSize: 32,
+    marginBottom: 28,
     borderWidth: 3,
     borderColor: '#408960',
     width: '100%',
     textAlign: 'center',
-    letterSpacing: 12, // מרווח גדול בין האותיות לתחושת קוד
+    letterSpacing: 12,
     fontWeight: '900',
     color: '#333333',
     shadowColor: '#408960',
