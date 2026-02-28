@@ -1,7 +1,6 @@
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-// ייבוא אייקונים כדי להפוך את הכפתורים למזמינים יותר
 import { Users, Baby, UserCircle } from 'lucide-react-native'; 
 
 export default function RoleSelectionScreen() {
@@ -11,6 +10,7 @@ export default function RoleSelectionScreen() {
   // פונקציה עזר לרנדור כפתור מעוצב
   const renderRoleButton = (
     title: string, 
+    subtitle: string,
     onPress: () => void, 
     backgroundColor: string, 
     IconComponent: React.ElementType
@@ -18,11 +18,16 @@ export default function RoleSelectionScreen() {
     <TouchableOpacity
       style={[styles.button, { backgroundColor }]}
       onPress={onPress}
-      activeOpacity={0.85} // אפקט לחיצה נעים
+      activeOpacity={0.85}
     >
       <View style={styles.buttonContent}>
-        <IconComponent size={24} color="#FFFFFF" style={styles.buttonIcon} />
-        <Text style={styles.buttonText}>{title}</Text>
+        <View style={styles.iconContainer}>
+          <IconComponent size={36} color="#FFFFFF" />
+        </View>
+        <View style={styles.buttonTextContainer}>
+          <Text style={styles.buttonText}>{title}</Text>
+          <Text style={styles.buttonSubtext}>{subtitle}</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -32,12 +37,6 @@ export default function RoleSelectionScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#f4f1ea" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
-          
-          <Image
-            source={require('@/assets/images/role_selection.png')}
-            style={styles.image}
-            resizeMode="contain"
-          />
 
           <View style={styles.textContainer}>
             <Text style={styles.title}>{t('role_selection.title')}</Text>
@@ -47,22 +46,25 @@ export default function RoleSelectionScreen() {
           <View style={styles.buttonContainer}>
             {renderRoleButton(
               t('role_selection.parent_button'),
+              t('role_selection.parent_subtitle'),
               () => router.push('/parent-auth'),
-              '#604abd', // צבע מקורי של ההורים
+              '#604abd', // צבע מקורי
               Users
             )}
 
             {renderRoleButton(
               t('role_selection.independent_button'),
+              t('role_selection.independent_subtitle'),
               () => router.push('/independent-login'),
-              '#c48c41', // צבע מקורי של עצמאי
+              '#c48c41', // צבע מקורי
               UserCircle
             )}
 
             {renderRoleButton(
               t('role_selection.child_button'),
+              t('role_selection.child_subtitle'),
               () => router.push('/child-login'),
-              '#408960', // צבע מקורי של ילדים
+              '#408960', // צבע מקורי
               Baby
             )}
           </View>
@@ -76,7 +78,7 @@ export default function RoleSelectionScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f4f1ea', // שמרנו על צבע הרקע החם והמקורי
+    backgroundColor: '#f4f1ea', // שמרנו על צבע הרקע החם
   },
   scrollContent: {
     flexGrow: 1,
@@ -84,14 +86,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingTop: 40,
-    paddingBottom: 60,
-  },
-  image: {
-    width: '100%',
-    height: 280, // קצת יותר קטן כדי לתת מקום לטקסט
-    marginBottom: 40,
+    paddingVertical: 40,
   },
   textContainer: {
     width: '100%',
@@ -99,8 +96,8 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   title: {
-    fontSize: 34, // כותרת גדולה ובולטת
-    fontWeight: '800', // משקל חזק
+    fontSize: 36,
+    fontWeight: '800',
     color: '#333333',
     marginBottom: 12,
     textAlign: 'center',
@@ -115,31 +112,42 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     width: '100%',
-    gap: 18, // מרווח שווה בין הכפתורים
+    maxWidth: 400,
+    gap: 20,
   },
   button: {
     width: '100%',
-    paddingVertical: 18,
-    borderRadius: 24, // פינות מעוגלות יותר, למראה רך ומזמין
-    // הוספת הצללה עדינה כדי לתת עומק
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+    // הוספת הצללה נעימה שעושה תחושה של כפתור אמיתי
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.15,
     shadowRadius: 10,
-    elevation: 6, // עבור אנדרואיד
+    elevation: 6,
   },
   buttonContent: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonIcon: {
-    marginLeft: 10, // רווח מהטקסט (RTL)
+  iconContainer: {
+    marginRight: 16, // מרווח בין האייקון לטקסט
+    marginLeft: 8,
+  },
+  buttonTextContainer: {
+    flex: 1, // גורם לטקסט לתפוס את שאר המקום ולשמור על יישור נכון
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    textAlign: 'center',
+  },
+  buttonSubtext: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    opacity: 0.9,
+    marginTop: 4,
+    lineHeight: 20,
   },
 });
