@@ -1,71 +1,70 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Users, Baby, UserCircle, ChevronLeft } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+// ייבוא אייקונים כדי להפוך את הכפתורים למזמינים יותר
+import { Users, Baby, UserCircle } from 'lucide-react-native'; 
 
 export default function RoleSelectionScreen() {
   const router = useRouter();
   const { t } = useTranslation();
 
+  // פונקציה עזר לרנדור כפתור מעוצב
+  const renderRoleButton = (
+    title: string, 
+    onPress: () => void, 
+    backgroundColor: string, 
+    IconComponent: React.ElementType
+  ) => (
+    <TouchableOpacity
+      style={[styles.button, { backgroundColor }]}
+      onPress={onPress}
+      activeOpacity={0.85} // אפקט לחיצה נעים
+    >
+      <View style={styles.buttonContent}>
+        <IconComponent size={24} color="#FFFFFF" style={styles.buttonIcon} />
+        <Text style={styles.buttonText}>{title}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+      <StatusBar barStyle="dark-content" backgroundColor="#f4f1ea" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           
-          <View style={styles.header}>
+          <Image
+            source={require('@/assets/images/role_selection.png')}
+            style={styles.image}
+            resizeMode="contain"
+          />
+
+          <View style={styles.textContainer}>
             <Text style={styles.title}>{t('role_selection.title')}</Text>
             <Text style={styles.subtitle}>{t('role_selection.subtitle')}</Text>
           </View>
 
-          <View style={styles.cardsContainer}>
-            {/* כרטיסיית הורים */}
-            <TouchableOpacity
-              style={styles.card}
-              activeOpacity={0.8}
-              onPress={() => router.push('/parent-auth')}
-            >
-              <View style={[styles.iconContainer, { backgroundColor: '#E0F2FE' }]}>
-                <Users size={32} color="#0284C7" />
-              </View>
-              <View style={styles.cardTextContainer}>
-                <Text style={styles.cardTitle}>{t('role_selection.parent_button')}</Text>
-                <Text style={styles.cardSubtitle}>{t('role_selection.parent_subtitle')}</Text>
-              </View>
-              <ChevronLeft size={24} color="#CBD5E1" />
-            </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            {renderRoleButton(
+              t('role_selection.parent_button'),
+              () => router.push('/parent-auth'),
+              '#604abd', // צבע מקורי של ההורים
+              Users
+            )}
 
-            {/* כרטיסיית מתאמן עצמאי */}
-            <TouchableOpacity
-              style={styles.card}
-              activeOpacity={0.8}
-              onPress={() => router.push('/independent-login')}
-            >
-              <View style={[styles.iconContainer, { backgroundColor: '#F1F5F9' }]}>
-                <UserCircle size={32} color="#475569" />
-              </View>
-              <View style={styles.cardTextContainer}>
-                <Text style={styles.cardTitle}>{t('role_selection.independent_button')}</Text>
-                <Text style={styles.cardSubtitle}>{t('role_selection.independent_subtitle')}</Text>
-              </View>
-              <ChevronLeft size={24} color="#CBD5E1" />
-            </TouchableOpacity>
+            {renderRoleButton(
+              t('role_selection.independent_button'),
+              () => router.push('/independent-login'),
+              '#c48c41', // צבע מקורי של עצמאי
+              UserCircle
+            )}
 
-            {/* כרטיסיית ילדים */}
-            <TouchableOpacity
-              style={[styles.card, styles.childCard]}
-              activeOpacity={0.8}
-              onPress={() => router.push('/child-login')}
-            >
-              <View style={[styles.iconContainer, { backgroundColor: '#D1FAE5' }]}>
-                <Baby size={32} color="#059669" />
-              </View>
-              <View style={styles.cardTextContainer}>
-                <Text style={styles.cardTitle}>{t('role_selection.child_button')}</Text>
-                <Text style={styles.cardSubtitle}>{t('role_selection.child_subtitle')}</Text>
-              </View>
-              <ChevronLeft size={24} color="#A7F3D0" />
-            </TouchableOpacity>
+            {renderRoleButton(
+              t('role_selection.child_button'),
+              () => router.push('/child-login'),
+              '#408960', // צבע מקורי של ילדים
+              Baby
+            )}
           </View>
 
         </View>
@@ -77,87 +76,70 @@ export default function RoleSelectionScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC', // רקע אפור-כחלחל נקי
+    backgroundColor: '#f4f1ea', // שמרנו על צבע הרקע החם והמקורי
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
   },
   container: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 40,
+    paddingBottom: 60,
   },
-  header: {
+  image: {
+    width: '100%',
+    height: 280, // קצת יותר קטן כדי לתת מקום לטקסט
+    marginBottom: 40,
+  },
+  textContainer: {
+    width: '100%',
     alignItems: 'center',
     marginBottom: 48,
-    width: '100%',
   },
   title: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: '#0F172A',
+    fontSize: 34, // כותרת גדולה ובולטת
+    fontWeight: '800', // משקל חזק
+    color: '#333333',
     marginBottom: 12,
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 18,
-    color: '#64748B',
+    color: '#666666',
     textAlign: 'center',
     lineHeight: 26,
-    maxWidth: '80%',
+    paddingHorizontal: 10,
   },
-  cardsContainer: {
+  buttonContainer: {
     width: '100%',
-    maxWidth: 400,
-    gap: 20,
+    gap: 18, // מרווח שווה בין הכפתורים
   },
-  card: {
+  button: {
+    width: '100%',
+    paddingVertical: 18,
+    borderRadius: 24, // פינות מעוגלות יותר, למראה רך ומזמין
+    // הוספת הצללה עדינה כדי לתת עומק
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 6, // עבור אנדרואיד
+  },
+  buttonContent: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: '#64748B',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  childCard: {
-    borderColor: '#D1FAE5',
-    borderWidth: 2,
-    shadowColor: '#10B981',
-    shadowOpacity: 0.1,
-  },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 16, // רווח משמאל כי אנחנו מימין לשמאל (RTL)
   },
-  cardTextContainer: {
-    flex: 1,
-    marginRight: 4,
+  buttonIcon: {
+    marginLeft: 10, // רווח מהטקסט (RTL)
   },
-  cardTitle: {
+  buttonText: {
+    color: '#FFFFFF',
     fontSize: 20,
     fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 4,
-    textAlign: 'right', // יישור לימין לטקסט בעברית
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#64748B',
-    lineHeight: 20,
-    textAlign: 'right',
+    textAlign: 'center',
   },
 });
