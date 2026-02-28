@@ -6,12 +6,14 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
-import { Plus, User, ChevronRight } from 'lucide-react-native';
+import { Plus, User, ChevronRight, Activity } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import AddChildWizard from '@/components/AddChildWizard';
 
@@ -56,172 +58,288 @@ export default function ParentHomeScreen() {
     <TouchableOpacity
       style={styles.childCard}
       onPress={() => router.push({ pathname: '/(parent)/child/[id]', params: { id: item.id } })}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
     >
-      <View style={styles.childInfo}>
-        <User size={32} color="#4F46E5" />
+      <View style={styles.childCardContent}>
+        <View style={styles.avatarContainer}>
+          <User size={24} color="#0284C7" />
+        </View>
+        
         <View style={styles.childDetails}>
           <Text style={styles.childName}>{item.name}</Text>
-          {item.device_id && (
-            <Text style={styles.linkedText}>{t('parent_home.device_linked')}</Text>
-          )}
+          <View style={styles.statusContainer}>
+            <View style={[styles.statusDot, { backgroundColor: item.device_id ? '#10B981' : '#CBD5E1' }]} />
+            <Text style={styles.statusText}>
+              {item.device_id ? t('parent_home.device_linked') : 'ממתין לחיבור מכשיר'}
+            </Text>
+          </View>
         </View>
       </View>
-      <ChevronRight size={22} color="#9CA3AF" />
+      
+      <View style={styles.actionIcon}>
+        <ChevronRight size={20} color="#94A3B8" />
+      </View>
     </TouchableOpacity>
   );
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4F46E5" />
+        <ActivityIndicator size="large" color="#0284C7" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>{t('parent_home.title')}</Text>
-          <Text style={styles.subtitle}>{t('parent_home.subtitle')}</Text>
-        </View>
-      </View>
-
-      <View style={styles.content}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t('parent_home.children_section_title')}</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setWizardVisible(true)}
-          >
-            <Plus size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-
-        {children.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>{t('parent_home.empty_state')}</Text>
-            <Text style={styles.emptySubtext}>
-              {t('parent_home.empty_state_subtitle')}
-            </Text>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+      <View style={styles.container}>
+        
+        {/* Header Section */}
+        <View style={styles.header}>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.title}>{t('parent_home.title')}</Text>
+            <Text style={styles.subtitle}>{t('parent_home.subtitle')}</Text>
           </View>
-        ) : (
-          <FlatList
-            data={children}
-            renderItem={renderChild}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContent}
-          />
-        )}
-      </View>
+          <View style={styles.headerIconContainer}>
+            <Activity size={28} color="#0284C7" />
+          </View>
+        </View>
 
-      <AddChildWizard
-        visible={wizardVisible}
-        onClose={() => setWizardVisible(false)}
-        familyId={profile?.family_id!}
-        onSuccess={handleWizardSuccess}
-      />
-    </View>
+        {/* Content Section */}
+        <View style={styles.content}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{t('parent_home.children_section_title')}</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setWizardVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Plus size={20} color="#FFFFFF" />
+              <Text style={styles.addButtonText}>הוסף</Text>
+            </TouchableOpacity>
+          </View>
+
+          {children.length === 0 ? (
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIconContainer}>
+                <User size={48} color="#94A3B8" />
+              </View>
+              <Text style={styles.emptyText}>{t('parent_home.empty_state')}</Text>
+              <Text style={styles.emptySubtext}>
+                {t('parent_home.empty_state_subtitle')}
+              </Text>
+              <TouchableOpacity
+                style={styles.emptyAddButton}
+                onPress={() => setWizardVisible(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.emptyAddButtonText}>הוסף פרופיל ראשון</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <FlatList
+              data={children}
+              renderItem={renderChild}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
+        </View>
+
+        <AddChildWizard
+          visible={wizardVisible}
+          onClose={() => setWizardVisible(false)}
+          familyId={profile?.family_id!}
+          onSuccess={handleWizardSuccess}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F8FAFC', // רקע נקי ובהיר
+  },
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#F8FAFC',
   },
   header: {
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 24,
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#4F46E5',
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 4,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginTop: 4,
+    fontSize: 15,
+    color: '#64748B',
+    fontWeight: '400',
+  },
+  headerIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#E0F2FE',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 24,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
   },
   addButton: {
-    backgroundColor: '#4F46E5',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    backgroundColor: '#0284C7', // כחול רפואי/מקצועי
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
     alignItems: 'center',
+    gap: 6,
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 14,
   },
   listContent: {
-    gap: 12,
+    gap: 16,
+    paddingBottom: 24,
   },
   childCard: {
     backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 16,
-    borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowColor: '#64748B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
-  childInfo: {
+  childCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
+  },
+  avatarContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#F0F9FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E0F2FE',
   },
   childDetails: {
     gap: 4,
   },
   childName: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: '700',
+    color: '#0F172A',
   },
-  linkedText: {
-    fontSize: 12,
-    color: '#10B981',
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusText: {
+    fontSize: 13,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  actionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 40,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   emptyText: {
-    fontSize: 18,
-    color: '#6B7280',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
     marginBottom: 8,
   },
   emptySubtext: {
-    fontSize: 14,
-    color: '#9CA3AF',
+    fontSize: 15,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 24,
+    maxWidth: '80%',
+  },
+  emptyAddButton: {
+    backgroundColor: '#0284C7',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+  },
+  emptyAddButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });
