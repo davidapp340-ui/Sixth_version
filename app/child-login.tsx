@@ -6,10 +6,17 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChildSession } from '@/contexts/ChildSessionContext';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Rocket } from 'lucide-react-native';
 import * as Device from 'expo-device';
 import { useTranslation } from 'react-i18next';
 import { checkChildSessionLock } from '@/lib/sessionLock';
@@ -57,58 +64,105 @@ export default function ChildLoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <ArrowLeft size={24} color="#10B981" />
-      </TouchableOpacity>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f4f1ea" />
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.container}>
+            
+            {/* כפתור חזור מעוצב */}
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()} activeOpacity={0.8}>
+              <ArrowLeft size={28} color="#408960" />
+            </TouchableOpacity>
 
-      <View style={styles.content}>
-        <Text style={styles.title}>{t('child_login.title')}</Text>
-        <Text style={styles.subtitle}>{t('child_login.subtitle')}</Text>
-        <Text style={styles.instructions}>
-          {t('child_login.instructions')}
-        </Text>
+            <View style={styles.content}>
+              
+              {/* דמות מזמינה לילד */}
+              <Image 
+                source={require('@/assets/images/avatars/astronaut.png')} 
+                style={styles.avatar}
+                resizeMode="contain"
+              />
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              <Text style={styles.title}>{t('child_login.title')}</Text>
+              <Text style={styles.subtitle}>{t('child_login.subtitle')}</Text>
+              <Text style={styles.instructions}>
+                {t('child_login.instructions')}
+              </Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder={t('child_login.code_placeholder')}
-          value={code}
-          onChangeText={(text) => setCode(text.toUpperCase())}
-          autoCapitalize="characters"
-          maxLength={6}
-          editable={!loading}
-        />
+              {error ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              ) : null}
 
-        <TouchableOpacity
-          style={[styles.connectButton, loading && styles.connectButtonDisabled]}
-          onPress={handleConnect}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.connectButtonText}>{t('child_login.connect_button')}</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </View>
+              {/* שדה הזנת קוד בסגנון "קוד סודי" */}
+              <TextInput
+                style={styles.input}
+                placeholder="******"
+                placeholderTextColor="#A1D0B6"
+                value={code}
+                onChangeText={(text) => setCode(text.toUpperCase())}
+                autoCapitalize="characters"
+                maxLength={6}
+                editable={!loading}
+                keyboardType={Platform.OS === 'ios' ? 'default' : 'visible-password'}
+                autoCorrect={false}
+              />
+
+              <TouchableOpacity
+                style={[styles.connectButton, loading && styles.connectButtonDisabled]}
+                onPress={handleConnect}
+                disabled={loading}
+                activeOpacity={0.85}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" size="large" />
+                ) : (
+                  <View style={styles.buttonContent}>
+                    <Text style={styles.connectButtonText}>{t('child_login.connect_button')}</Text>
+                    <Rocket size={24} color="#FFFFFF" style={styles.buttonIcon} />
+                  </View>
+                )}
+              </TouchableOpacity>
+
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f4f1ea', // צבע רקע חם ומזמין
+  },
+  keyboardAvoid: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
-    padding: 20,
+    padding: 24,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    alignSelf: 'flex-start',
   },
   content: {
     flex: 1,
@@ -117,60 +171,98 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     alignSelf: 'center',
     width: '100%',
+    paddingBottom: 40, // מרווח מלמטה עבור המקלדת
+  },
+  avatar: {
+    width: 140,
+    height: 140,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#10B981',
+    fontSize: 40,
+    fontWeight: '900',
+    color: '#408960', // צבע הילדים המקורי
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 24,
-    color: '#6B7280',
+    fontSize: 20,
+    color: '#555555',
     marginBottom: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   instructions: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#777777',
     textAlign: 'center',
     marginBottom: 32,
+    paddingHorizontal: 20,
+    lineHeight: 24,
+  },
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+    width: '100%',
+    borderWidth: 2,
+    borderColor: '#FCA5A5',
   },
   errorText: {
     color: '#EF4444',
-    fontSize: 14,
-    marginBottom: 12,
+    fontSize: 15,
+    fontWeight: '600',
     textAlign: 'center',
-    backgroundColor: '#FEE2E2',
-    padding: 12,
-    borderRadius: 8,
-    width: '100%',
   },
   input: {
     backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 12,
-    fontSize: 24,
-    marginBottom: 24,
-    borderWidth: 2,
-    borderColor: '#10B981',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+    fontSize: 36,
+    marginBottom: 32,
+    borderWidth: 3,
+    borderColor: '#408960',
     width: '100%',
     textAlign: 'center',
-    letterSpacing: 8,
-    fontWeight: 'bold',
+    letterSpacing: 12, // מרווח גדול בין האותיות לתחושת קוד
+    fontWeight: '900',
+    color: '#333333',
+    shadowColor: '#408960',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   connectButton: {
-    backgroundColor: '#10B981',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: '#408960',
+    paddingVertical: 20,
+    borderRadius: 24,
     alignItems: 'center',
     width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 6,
   },
   connectButtonDisabled: {
-    opacity: 0.6,
+    opacity: 0.7,
+    backgroundColor: '#7DBA98',
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   connectButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  buttonIcon: {
+    marginLeft: 12,
   },
 });
